@@ -1,14 +1,26 @@
 import json
+import re
 from openai import OpenAI
 from langsmith.wrappers import wrap_openai
+from langgraph.config import get_stream_writer
 from graph.state import DebateState, Turn, ToolCall
 from graph.tools import TOOL_SCHEMAS, TOOL_DISPATCH
 from graph.state import Flag, DecisionMemo
 from pydantic import BaseModel
 
 client = wrap_openai(OpenAI())
-MODEL = "gpt-4o"
+MODEL = "gpt-5.6-luna"
 MAX_TOOL_CALLS = 2   # guardrail: cap evidence-gathering per turn
+
+# Chat Completions rejects function tools + reasoning_effort together for
+# this model ("use /v1/responses or set reasoning_effort to 'none'"), so
+# every call goes through the Responses API instead, which supports both
+# at once. gpt-5.6-luna's supported tiers are none/low/medium/high/xhigh/max
+# ("minimal", offered by other reasoning models, isn't valid here). "low" is
+# the lowest tier this model accepts — a trivial tool call used 0 reasoning
+# tokens at this level in testing, so cost stays close to reasoning-off while
+# still letting the model reason when a step actually calls for it.
+REASONING_EFFORT = "medium"
 
 
 ADVOCATE_SYSTEM = """You are the Advocate in a product decision debate.
@@ -27,6 +39,31 @@ invent facts. Keep your argument to 3-5 sentences. Respond to the opponent's
 prior points when relevant. If you have argued in prior rounds, do NOT repeat your earlier points. Advance the debate: directly rebut your opponent's most recent argument, or introduce evidence you haven't used yet."""
 
 
+# Occasionally the model emits an unexecuted tool-call attempt as raw text
+# (e.g. 'to=functions.search_internal_context code{"query":"..."}') instead
+# of a structured function_call item — it lands in output_text glued onto
+# the front of the real argument rather than being caught by our
+# function_call handling. Rare (observed intermittently, not tied to one
+# input), but since it ships straight to the transcript/UI verbatim, treat
+# it as a bad generation: retry once, and if it recurs, strip it so garbled
+# tool syntax can never reach a user regardless of what the model does.
+_LEAKED_TOOL_CALL_RE = re.compile(r'\A\s*to=functions\.\w+.*?\}\s*', re.DOTALL)
+MAX_LEAK_RETRIES = 1
+
+
+def _looks_like_leaked_tool_call(text: str) -> bool:
+    return bool(_LEAKED_TOOL_CALL_RE.match(text))
+
+
+def _strip_leaked_tool_call_syntax(text: str) -> str:
+    cleaned = text
+    while True:
+        stripped = _LEAKED_TOOL_CALL_RE.sub("", cleaned, count=1)
+        if stripped == cleaned:
+            return cleaned.strip()
+        cleaned = stripped
+
+
 def _render_transcript(transcript: list[Turn]) -> str:
     if not transcript:
         return "(no arguments yet — you are opening the debate)"
@@ -40,7 +77,7 @@ def _run_debater(state: DebateState, role: str, system_prompt: str) -> dict:
     """Shared agent loop for both debaters. Returns a partial state
     with one new Turn appended to the transcript."""
 
-    messages = [
+    input_list = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": (
             f"FEATURE DECISION: {state['question']}\n\n"
@@ -51,51 +88,85 @@ def _run_debater(state: DebateState, role: str, system_prompt: str) -> dict:
 
     collected_tool_calls: list[ToolCall] = []
     tool_calls_made = 0
+    leak_retries_used = 0
+    # Pushes each tool call to the UI the moment it happens, via LangGraph's
+    # custom stream channel (stream_mode="custom") — separate from the Turn
+    # this function returns at the end, which server/app.py still emits as
+    # the "turn" SSE event once the argument is ready.
+    stream_writer = get_stream_writer()
 
     while True:
         # Only offer tools while under the cap; once capped, force a final answer.
-        kwargs = {"model": MODEL, "messages": messages}
+        # reasoning is applied on every call (not just while tools are offered)
+        # so behavior is uniform regardless of how many tool calls the model
+        # happens to make — see REASONING_EFFORT above for why this goes
+        # through /v1/responses rather than Chat Completions.
+        kwargs = {
+            "model": MODEL, "input": input_list,
+            "reasoning": {"effort": REASONING_EFFORT},
+        }
         if tool_calls_made < MAX_TOOL_CALLS:
             kwargs["tools"] = TOOL_SCHEMAS
             kwargs["tool_choice"] = "auto"
             kwargs["parallel_tool_calls"] = False   # one search per turn
 
-        response = client.chat.completions.create(
+        response = client.responses.create(
             **kwargs,
             langsmith_extra={"name": f"{role}_reasoning"},
             )
-        msg = response.choices[0].message
+
+        function_calls = [item for item in response.output if item.type == "function_call"]
 
         # No tool calls requested -> this is the final argument.
-        if not msg.tool_calls:
-            argument = msg.content.strip()
+        if not function_calls:
+            argument = response.output_text.strip()
+            if _looks_like_leaked_tool_call(argument):
+                if leak_retries_used < MAX_LEAK_RETRIES:
+                    leak_retries_used += 1
+                    continue   # re-issue the same request; input_list is unchanged
+                print(
+                    f"[warn] {role} r{state['round']}: leaked tool-call "
+                    f"syntax survived a retry, stripping before use"
+                )
+                argument = _strip_leaked_tool_call_syntax(argument)
             break
 
-        # Otherwise, append the assistant's tool-request message, then execute.
-        messages.append(msg)
-        for tc in msg.tool_calls:
-            fn_name = tc.function.name
-            args = json.loads(tc.function.arguments)
+        # Otherwise, echo the assistant's output items back, then execute.
+        input_list += response.output
+        for fc in function_calls:
+            fn_name = fc.name
+            args = json.loads(fc.arguments)
             query = args.get("query", "")
 
             evidence = TOOL_DISPATCH[fn_name](query)
             tool_calls_made += 1
 
-            # Record for the transcript (what the UI will show).
+            # Record for the transcript (what the UI will show), and push
+            # each one live as it's retrieved (before the argument exists).
             for ev in evidence:
-                collected_tool_calls.append(ToolCall(
+                tc_obj = ToolCall(
                     tool=fn_name, query=query,
-                    source=ev.source, snippet=ev.content[:200],
-                ))
+                    source=ev.source, snippet=ev.content[:500],
+                )
+                collected_tool_calls.append(tc_obj)
+                stream_writer({
+                    "type": "tool_call",
+                    "role": role,
+                    "round": state["round"],
+                    "tool": tc_obj.tool,
+                    "query": tc_obj.query,
+                    "source": tc_obj.source,
+                    "snippet": tc_obj.snippet,
+                })
 
             # Feed the result back to the model.
             result_text = "\n\n".join(
                 f"[{ev.source}] {ev.content}" for ev in evidence
             ) or "(no results)"
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tc.id,
-                "content": result_text,
+            input_list.append({
+                "type": "function_call_output",
+                "call_id": fc.call_id,
+                "output": result_text,
             })
 
     turn = Turn(
@@ -120,16 +191,38 @@ def skeptic_node(state: DebateState) -> dict:
 
 FACTCHECK_SYSTEM = """You are a fact-checker in a product decision debate.
 You are given the arguments made THIS round and the evidence each debater
-actually retrieved (their tool calls). For each significant factual claim a
-debater makes, decide whether it is supported by the evidence they gathered
-or by general common knowledge.
+actually retrieved (their tool calls). Your job is to catch claims that
+misrepresent or outrun that evidence — not to grade writing quality.
 
-Flag a claim as unsupported if it asserts a specific fact (a number, a user
-sentiment, a market figure, a competitor outcome) that is NOT backed by the
-evidence shown. Do not flag opinions, predictions, or reasonable inferences.
-Be strict about invented specifics, lenient about judgment calls.
+First, extract every checkable factual claim from the round: a specific
+number, a quoted or paraphrased user statement, a named risk or metric from
+the source documents, or an assertion about what the evidence shows. Split
+compound sentences into separate claims — if one sentence bundles three
+facts, assess each one on its own, so a single wrong fact can't hide behind
+two correct ones.
 
-Return a list of claims you assessed, each marked supported or not."""
+Do NOT extract the debater's overall recommendation, strategy, or proposed
+next step (e.g. "we should launch narrowly," "this justifies a pilot") as a
+claim to assess — these are not factual assertions, and have nothing to be
+supported or unsupported against. Leave them out of the list entirely.
+
+For each extracted claim, check whether the retrieved evidence actually
+states it or directly entails it. Mark it unsupported if it:
+- states a number, quote, or fact that is not present in the evidence shown
+- asserts what a metric or pilot result would prove or "validate" beyond
+  what that metric actually measures (e.g. "X% of users trying it would
+  validate demand" is overreach unless the evidence itself makes that
+  connection — a trial-rate metric proves trial, not demand or retention)
+- generalizes from a small evidence sample to a broader population the
+  evidence doesn't cover (e.g. four quotes -> "most users report...")
+
+Do not flag genuine opinions, predictions framed as opinions, or reasonable
+inferences that stay within what the evidence supports. Be strict about
+invented specifics and about claims that quietly convert "the evidence
+exists" into "the evidence proves" — lenient about honestly-hedged judgment
+calls.
+
+Return a list of the claims you assessed, each marked supported or not."""
 
 
 def _render_round_for_check(state: DebateState) -> str:
@@ -154,19 +247,20 @@ def factcheck_node(state: DebateState) -> dict:
     class FlagList(BaseModel):
         flags: list[Flag]
 
-    completion = client.beta.chat.completions.parse(
+    response = client.responses.parse(
         model=MODEL,
-        messages=[
+        reasoning={"effort": REASONING_EFFORT},  # see _run_debater — uniform across all MODEL calls
+        input=[
             {"role": "system", "content": FACTCHECK_SYSTEM},
             {"role": "user", "content": (
                 f"FEATURE: {state['question']}\n\n"
                 f"THIS ROUND:\n{_render_round_for_check(state)}"
             )},
         ],
-        response_format=FlagList,
+        text_format=FlagList,
     )
 
-    flags = completion.choices[0].message.parsed.flags
+    flags = response.output_parsed.flags
     # Stamp the round number (the model doesn't need to set it).
     for f in flags:
         f.round = state["round"]
@@ -209,9 +303,10 @@ def _render_full_debate(state: DebateState) -> str:
 
 def judge_node(state: DebateState) -> dict:
     """Consume the full debate, emit a validated DecisionMemo."""
-    completion = client.beta.chat.completions.parse(
+    response = client.responses.parse(
         model=MODEL,
-        messages=[
+        reasoning={"effort": REASONING_EFFORT},  # see _run_debater — uniform across all MODEL calls
+        input=[
             {"role": "system", "content": JUDGE_SYSTEM},
             {"role": "user", "content": (
                 f"FEATURE DECISION: {state['question']}\n\n"
@@ -219,6 +314,6 @@ def judge_node(state: DebateState) -> dict:
                 f"Render your decision."
             )},
         ],
-        response_format=DecisionMemo,
+        text_format=DecisionMemo,
     )
-    return {"verdict": completion.choices[0].message.parsed}
+    return {"verdict": response.output_parsed}
