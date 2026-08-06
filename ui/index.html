@@ -89,6 +89,15 @@
   #debate-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem 1.25rem; align-items: start; }
   .col-span-full { grid-column: 1 / -1; }
 
+  /* Case-chip "active" state as one hand-authored compound-selector rule,
+     not three separate Tailwind utility classes (bg-ink/text-paper/border-ink)
+     toggled via JS. Tailwind's generated stylesheet orders same-property
+     utilities by their position in the color config, not by DOM/mutation
+     order — so a toggled class can silently lose a cascade tie to a resting
+     class declared earlier in the config. A compound selector's higher
+     specificity wins deterministically regardless of that ordering. */
+  .case-chip.is-active-chip { background-color: #0f172a; color: #f8fafc; border-color: #0f172a; }
+
   @media (max-width: 768px) {
     #debate-grid { grid-template-columns: 1fr; }
   }
@@ -110,7 +119,15 @@
 
   <!-- ============ SETUP ============ -->
   <section id="setup" class="py-8">
-    <div id="case-chips" class="flex flex-wrap gap-2 mb-6"></div>
+    <p class="font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft mb-2">Example cases</p>
+    <div id="case-picker" class="flex flex-wrap items-center gap-3 mb-6">
+      <div id="case-chips" class="flex flex-wrap gap-2"></div>
+      <span class="font-mono text-[11px] text-inkSoft">or</span>
+      <button id="blank-chip" type="button"
+        class="case-chip font-mono text-[11px] uppercase tracking-wide px-3 py-1.5 rounded-full border-2 border-dashed border-inkSoft hover:border-ink transition-colors">
+        + start from scratch
+      </button>
+    </div>
 
     <form id="setup-form" class="bg-white border border-line rounded-xl p-4 md:p-5 space-y-4">
       <div>
@@ -165,6 +182,9 @@
 
     <div id="error-banner" class="hidden mt-4 font-mono text-xs text-rust bg-rust/10 border border-rust/30 rounded-md px-4 py-3"></div>
   </section>
+
+  <!-- ============ PROGRESS BAR (built once a run starts; sticky while scrolling) ============ -->
+  <div id="progress-bar" class="hidden sticky top-0 z-30 bg-paper border-b border-line py-3 mb-2"></div>
 
   <!-- ============ DEBATE ============ -->
   <section id="debate" class="hidden py-5">
@@ -251,6 +271,12 @@
     </div>
   </div>
 </div>
+
+<!-- ============ NEW ACTIVITY TOAST (passive — nothing auto-scrolls) ============ -->
+<button id="new-activity-toast" type="button"
+  class="hidden fixed bottom-6 right-6 z-40 font-mono text-xs uppercase tracking-[0.1em] bg-ink text-paper px-4 py-2.5 rounded-full shadow-lg hover:bg-inkSoft transition-colors">
+  ↓ New activity
+</button>
 
 <script>
 // ---------------------------------------------------------------
@@ -460,6 +486,8 @@ const errorBanner     = document.getElementById('error-banner');
 
 const debateSection = document.getElementById('debate');
 const debateGrid     = document.getElementById('debate-grid');
+const progressBarEl  = document.getElementById('progress-bar');
+const newActivityToast = document.getElementById('new-activity-toast');
 
 const verdictSection   = document.getElementById('verdict');
 const verdictStampEl   = document.getElementById('verdict-stamp');
@@ -484,7 +512,7 @@ const confirmModalMessage  = document.getElementById('confirm-modal-message');
 const confirmModalCancel   = document.getElementById('confirm-modal-cancel');
 const confirmModalContinue = document.getElementById('confirm-modal-continue');
 
-const state = { running: false, currentRound: 0, roundCells: {} };
+const state = { running: false, currentRound: 0, roundCells: {}, roundMarkers: {}, progressSteps: {} };
 
 // ---------------------------------------------------------------
 // Evidence detail modal — "view details" on any evidence row
@@ -600,11 +628,11 @@ function clearForm() {
 questionInput.addEventListener('input', refreshStartButtonState);
 
 function setActiveChip(id) {
-  caseChipsEl.querySelectorAll('.case-chip').forEach(chip => {
-    const active = chip.dataset.caseId === id;
-    chip.classList.toggle('bg-ink', active);
-    chip.classList.toggle('text-paper', active);
-    chip.classList.toggle('border-ink', active);
+  // Scoped to the whole picker row, not just #case-chips — "start from
+  // scratch" lives outside that div now (it's not one of the examples),
+  // but still needs its active state toggled like any other chip.
+  document.querySelectorAll('#case-picker .case-chip').forEach(chip => {
+    chip.classList.toggle('is-active-chip', chip.dataset.caseId === id);
   });
 }
 
@@ -619,14 +647,10 @@ function renderCaseChips() {
     chip.addEventListener('click', () => loadCaseIntoForm(c));
     caseChipsEl.appendChild(chip);
   });
-  const blankChip = h('button', {
-    class: 'case-chip font-mono text-[11px] uppercase tracking-wide px-3 py-1.5 rounded-full border border-dashed border-line transition-colors',
-    text: '+ start from scratch',
-    attrs: { type: 'button' },
-  });
+
+  const blankChip = document.getElementById('blank-chip');
   blankChip.dataset.caseId = 'blank';
   blankChip.addEventListener('click', clearForm);
-  caseChipsEl.appendChild(blankChip);
 }
 
 addContextBtn.addEventListener('click', () => {
@@ -665,9 +689,133 @@ function collectContext() {
 function resetDebateView() {
   debateGrid.innerHTML = '';
   state.roundCells = {};
+  state.roundMarkers = {};
+  state.progressSteps = {};
   state.currentRound = 0;
   verdictSection.classList.add('hidden');
   errorBanner.classList.add('hidden');
+  hideNewActivityToast();
+}
+
+// ---------------------------------------------------------------
+// New activity toast — purely passive notification, nothing here ever
+// scrolls on its own. After any content lands, if the user isn't already
+// near the bottom (i.e. they wouldn't see it), let them know; a click jumps
+// down once, on demand. The auto-follow version of this caused visible
+// scroll jitter in real use (competing scrollIntoView calls, browser scroll
+// anchoring reacting to the same layout changes, etc.) — dropping the
+// "follow automatically" half entirely removes that risk, since the only
+// programmatic scroll left is the one the user explicitly asks for.
+// ---------------------------------------------------------------
+const NEAR_BOTTOM_PX = 200;
+
+function isNearBottom() {
+  return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - NEAR_BOTTOM_PX;
+}
+
+function showNewActivityToast() {
+  if (!newActivityToast.classList.contains('hidden')) return; // already showing
+  newActivityToast.classList.remove('hidden');
+  newActivityToast.classList.remove('card-in');
+  void newActivityToast.offsetWidth; // reflow to retrigger the entrance animation
+  newActivityToast.classList.add('card-in');
+}
+
+function hideNewActivityToast() {
+  newActivityToast.classList.add('hidden');
+}
+
+// Call after appending new debate content — shows the toast only if the
+// user would otherwise miss it.
+function noteNewActivity() {
+  if (!isNearBottom()) showNewActivityToast();
+}
+
+newActivityToast.addEventListener('click', () => {
+  window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  hideNewActivityToast();
+});
+
+// If the user scrolls down to the live edge themselves, no need to keep
+// telling them about activity they're now already looking at.
+let toastScrollTimer = null;
+window.addEventListener('scroll', () => {
+  if (newActivityToast.classList.contains('hidden')) return;
+  clearTimeout(toastScrollTimer);
+  toastScrollTimer = setTimeout(() => {
+    if (isNearBottom()) hideNewActivityToast();
+  }, 150);
+});
+
+// ---------------------------------------------------------------
+// Progress bar: a lightweight, sticky step readout — not a full nav
+// sidebar. Mostly informational while the debate is live (round/verdict
+// state at a glance); each step is clickable so it doubles as a way to
+// jump back to a specific round after the debate finishes.
+// ---------------------------------------------------------------
+const PROGRESS_STEP_STYLE = {
+  upcoming: { dot: 'border border-inkSoft', text: 'text-inkSoft' },
+  active:   { dot: 'border border-ink bg-ink', text: 'text-ink' },
+  done:     { dot: 'border border-teal bg-teal', text: 'text-inkSoft' },
+};
+
+function applyStepState(step, stateName) {
+  const s = PROGRESS_STEP_STYLE[stateName];
+  step.dot.className = `inline-block w-2 h-2 rounded-full shrink-0 ${s.dot}`;
+  step.text.className = s.text;
+}
+
+function buildProgressStep(label, onClick) {
+  const dot = h('span', {});
+  const text = h('span', { text: label });
+  const btn = h('button', {
+    class: 'flex items-center gap-1.5 transition-opacity hover:opacity-70',
+    attrs: { type: 'button' },
+  }, [dot, text]);
+  btn.addEventListener('click', onClick);
+  const step = { btn, dot, text };
+  applyStepState(step, 'upcoming');
+  return step;
+}
+
+function buildProgressBar(maxRounds) {
+  progressBarEl.innerHTML = '';
+  state.progressSteps = {};
+  const row = h('div', { class: 'flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-wide' });
+
+  for (let n = 1; n <= maxRounds; n++) {
+    const step = buildProgressStep(`Round ${n}`, () => {
+      const marker = state.roundMarkers[n];
+      if (marker) marker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    state.progressSteps[`round-${n}`] = step;
+    row.appendChild(step.btn);
+    row.appendChild(h('span', { class: 'text-line', text: '—' }));
+  }
+
+  const verdictStep = buildProgressStep('Verdict', () => {
+    if (!verdictSection.classList.contains('hidden')) {
+      verdictSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+  state.progressSteps.verdict = verdictStep;
+  row.appendChild(verdictStep.btn);
+
+  progressBarEl.appendChild(row);
+  progressBarEl.classList.remove('hidden');
+}
+
+function markProgress(currentRound, verdictReached) {
+  Object.entries(state.progressSteps).forEach(([key, step]) => {
+    if (key === 'verdict') {
+      applyStepState(step, verdictReached ? 'done' : 'upcoming');
+      return;
+    }
+    const roundNum = parseInt(key.split('-')[1], 10);
+    if (roundNum < currentRound || verdictReached) applyStepState(step, 'done');
+    else if (roundNum === currentRound) applyStepState(step, 'active');
+    else applyStepState(step, 'upcoming');
+  });
 }
 
 // A round cell starts "in progress" (dashed border, no argument yet) and is
@@ -712,8 +860,12 @@ function buildRoundMarker(n) {
 function addRoundRow(n) {
   const advocate = buildInProgressCard('advocate', n);
   const skeptic  = buildInProgressCard('skeptic', n);
-  debateGrid.append(advocate.cell, buildRoundMarker(n), skeptic.cell);
+  const marker = buildRoundMarker(n);
+
+  debateGrid.append(advocate.cell, marker, skeptic.cell);
   state.roundCells[n] = { advocate, skeptic };
+  state.roundMarkers[n] = marker;
+  noteNewActivity();
 }
 
 function buildEvidenceRow(tc) {
@@ -746,6 +898,7 @@ function addToolCall(evt) {
   if (!rec) return;
   if (rec.pulseLine) rec.pulseLine.textContent = 'weighing the evidence …';
   rec.evidenceList.appendChild(buildEvidenceRow(evt));
+  noteNewActivity();
 }
 
 function finalizeTurn(evt) {
@@ -767,6 +920,7 @@ function finalizeTurn(evt) {
   }
 
   rec.cell.className = 'turn-card min-w-0 bg-white border border-line rounded-xl shadow-sm p-4';
+  noteNewActivity();
 }
 
 function buildFlagRow(f) {
@@ -805,6 +959,7 @@ function addFlags(flags) {
     supported.forEach(f => strip.appendChild(buildFlagRow(f)));
   }
   debateGrid.appendChild(strip);
+  noteNewActivity();
 }
 
 // ---------------------------------------------------------------
@@ -856,6 +1011,7 @@ function handleEvent(evt) {
     case 'round':
       state.currentRound = evt.round;
       addRoundRow(evt.round);
+      markProgress(evt.round, false);
       break;
     case 'tool_call':
       addToolCall(evt);
@@ -868,6 +1024,7 @@ function handleEvent(evt) {
       break;
     case 'verdict':
       showVerdict(evt.verdict);
+      markProgress(state.currentRound, true);
       break;
     case 'done':
       break;
@@ -893,6 +1050,7 @@ function setBusy(loading, replaying = false) {
 
 async function startDebate(question, maxRounds, context) {
   resetDebateView();
+  buildProgressBar(maxRounds);
   debateSection.classList.remove('hidden');
   debateSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -958,6 +1116,10 @@ async function replayExample() {
     const res = await fetch('/examples/notenest-summaries.json');
     if (!res.ok) throw new Error(`Failed to load example (${res.status})`);
     const events = await res.json();
+
+    const roundNumbers = events.filter(e => e.type === 'round').map(e => e.round);
+    buildProgressBar(roundNumbers.length ? Math.max(...roundNumbers) : 1);
+
     for (const evt of events) {
       handleEvent(evt);
       await sleep(evt.type === 'tool_call' ? 250 : 400); // mirrors the live backend's pacing

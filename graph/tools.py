@@ -137,42 +137,43 @@ def web_search(query: str, k: int = 3) -> list[Evidence]:
 
 # ---------------------------------------------------------------
 # Tool registry: schemas for the model + dispatch for execution
+#
+# Flat shape (name/description/parameters at the top level, not nested
+# under "function") because graph/nodes.py calls the Responses API
+# (client.responses.create), not Chat Completions — the two APIs use
+# different function-tool schema shapes.
 # ---------------------------------------------------------------
 
 TOOL_SCHEMAS = [
     {
         "type": "function",
-        "function": {
-            "name": "search_internal_context",
-            "description": (
-                "Search the product's own PRD and user feedback. Use for "
-                "anything about THIS product, its users, the proposed feature, "
-                "costs, or scope. Returns up to 3 relevant chunks."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "What to look up"}
-                },
-                "required": ["query"],
+        "name": "search_internal_context",
+        "description": (
+            "Search the product's own PRD and user feedback. Use for "
+            "anything about THIS product, its users, the proposed feature, "
+            "costs, or scope. Returns up to 3 relevant chunks."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "What to look up"}
             },
+            "required": ["query"],
         },
     },
     {
         "type": "function",
-        "function": {
-            "name": "web_search",
-            "description": (
-                "Search the web (Google) for market data, competitors, industry "
-                "trends, or external evidence NOT found in the internal docs."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "Search query"}
-                },
-                "required": ["query"],
+        "name": "web_search",
+        "description": (
+            "Search the web (Google) for market data, competitors, industry "
+            "trends, or external evidence NOT found in the internal docs."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query"}
             },
+            "required": ["query"],
         },
     },
 ]
