@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Should We Build It? — Debate Arena</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%96%EF%B8%8F%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          // Cool neutral / research-tool palette (was warm cream+earth-tone "case file").
+          // Token NAMES kept as-is so every existing bg-/text-/border- utility class
+          // across the file repaints automatically — only the hex values changed.
+          paper:     '#f8fafc', // page background
+          paperDark: '#f1f5f9', // muted surface (in-progress cards, track fills)
+          ink:       '#0f172a', // primary text + Advocate accent
+          inkSoft:   '#475569', // secondary text
+          // One shade darker than the "obvious" 600-weight pick (red/teal/blue/amber-600
+          // all land ~3.4-4.4:1 on this light a background — fails AA at these text sizes).
+          rust:      '#b91c1c', // Skeptic accent + unsupported-claim flag
+          gold:      '#b45309', // "build_descoped" verdict accent
+          teal:      '#0f766e', // internal-doc tool accent + "build" verdict
+          slateBlue: '#1d4ed8', // web-search tool accent (blue = "web", distinct from ink/teal/rust)
+          line:      '#e2e8f0', // borders
+        },
+        fontFamily: {
+          // One coherent family (weight carries hierarchy, not font-mixing) —
+          // was a display-serif + body-serif pairing (Fraunces + Source Serif 4).
+          display: ['"IBM Plex Sans"', 'sans-serif'],
+          body:    ['"IBM Plex Sans"', 'sans-serif'],
+          mono:    ['"IBM Plex Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  html { background: #f8fafc; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .card-in { animation: cardIn .5s cubic-bezier(.22,1,.36,1) both; }
+  .evidence-row { opacity: 0; animation: cardIn .4s ease both; }
+
+  @keyframes pulseDots {
+    0%, 100% { opacity: .35; }
+    50%      { opacity: .9; }
+  }
+  .pulse-dots { animation: pulseDots 1.6s ease-in-out infinite; }
+
+  @keyframes badgeIn {
+    from { opacity: 0; transform: scale(.94); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .animate-stamp { animation: badgeIn .3s cubic-bezier(.22,1,.36,1) both; }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(.96) translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .modal-panel { animation: modalIn .18s ease both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-in, .evidence-row, .pulse-dots, .animate-stamp, .modal-panel {
+      animation: none !important; opacity: 1 !important; transform: none !important;
+    }
+  }
+
+  ::selection { background: #2563eb33; }
+
+  textarea, input, select { font-family: inherit; }
+  textarea:focus, input:focus, select:focus { outline: none; }
+
+  /* minmax(0, 1fr), not bare 1fr (== minmax(auto, 1fr)): a grid track's "auto"
+     minimum is its content's min-content size, so long unbroken text (a
+     source title, a URL-shaped string) can force the track — and the whole
+     grid — wider than the page, causing horizontal scroll ("grid blowout"). */
+  #debate-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem 1.25rem; align-items: start; }
+  .col-span-full { grid-column: 1 / -1; }
+
+  /* Case-chip "active" state as one hand-authored compound-selector rule,
+     not three separate Tailwind utility classes (bg-ink/text-paper/border-ink)
+     toggled via JS. Tailwind's generated stylesheet orders same-property
+     utilities by their position in the color config, not by DOM/mutation
+     order — so a toggled class can silently lose a cascade tie to a resting
+     class declared earlier in the config. A compound selector's higher
+     specificity wins deterministically regardless of that ordering. */
+  .case-chip.is-active-chip { background-color: #0f172a; color: #f8fafc; border-color: #0f172a; }
+
+  @media (max-width: 768px) {
+    #debate-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+
+<body class="min-h-screen bg-paper text-ink font-body antialiased relative">
+
+<div class="relative z-10 max-w-5xl mx-auto px-5 md:px-8 pb-28">
+
+  <header class="pt-10 pb-8 border-b border-line">
+    <p class="font-mono text-[11px] uppercase tracking-[0.25em] text-gold mb-3">Case File — Product Decision</p>
+    <h1 class="font-display text-4xl md:text-5xl font-semibold text-ink tracking-tight">Should We Build It?</h1>
+    <p class="font-body text-inkSoft mt-3 max-w-xl leading-relaxed">
+      An Advocate and a Skeptic argue a product decision, each gathering real evidence
+      before they speak. A fact-checker keeps them honest. A judge renders the verdict.
+    </p>
+  </header>
+
+  <!-- ============ SETUP ============ -->
+  <section id="setup" class="py-8">
+    <p class="font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft mb-2">Example cases</p>
+    <div id="case-picker" class="flex flex-wrap items-center gap-3 mb-6">
+      <div id="case-chips" class="flex flex-wrap gap-2"></div>
+      <span class="font-mono text-[11px] text-inkSoft">or</span>
+      <button id="blank-chip" type="button"
+        class="case-chip font-mono text-[11px] uppercase tracking-wide px-3 py-1.5 rounded-full border-2 border-dashed border-inkSoft hover:border-ink transition-colors">
+        + start from scratch
+      </button>
+    </div>
+
+    <form id="setup-form" class="bg-white border border-line rounded-xl p-4 md:p-5 space-y-4">
+      <div>
+        <label class="font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft block mb-1.5">
+          The question
+        </label>
+        <input id="question-input" type="text" required
+          class="w-full bg-transparent border-b border-line focus:border-ink transition-colors font-display text-xl md:text-2xl text-ink pb-1.5 placeholder:text-inkSoft/40"
+          placeholder="Should we build…?">
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft">
+            Context the agents can search
+          </label>
+          <button type="button" id="add-context-btn"
+            class="font-mono text-[11px] text-teal hover:text-teal/70 transition-colors">
+            + add source
+          </button>
+        </div>
+        <div id="context-blocks" class="space-y-3"></div>
+      </div>
+
+      <div class="flex flex-wrap items-end justify-between gap-4 pt-1">
+        <div>
+          <label class="font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft block mb-1.5">
+            Rounds
+          </label>
+          <select id="rounds-select"
+            class="bg-paperDark border border-line rounded-md px-3 py-1.5 font-mono text-sm text-ink">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+          <p id="rounds-hint" class="font-mono text-[11px] text-inkSoft mt-1.5 max-w-[16rem]"></p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="replay-btn" type="button"
+            class="font-mono text-xs uppercase tracking-[0.1em] text-inkSoft hover:text-teal transition-colors px-3 py-3">
+            ▶ Replay saved example
+          </button>
+          <button id="start-btn" type="submit"
+            class="font-mono text-sm uppercase tracking-[0.1em] bg-ink text-paper px-6 py-3 rounded-md hover:bg-inkSoft transition-colors shadow-sm">
+            Start Debate
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <div id="error-banner" class="hidden mt-4 font-mono text-xs text-rust bg-rust/10 border border-rust/30 rounded-md px-4 py-3"></div>
+  </section>
+
+  <!-- ============ PROGRESS BAR (built once a run starts; sticky while scrolling) ============ -->
+  <div id="progress-bar" class="hidden sticky top-0 z-30 bg-paper border-b border-line py-3 mb-2"></div>
+
+  <!-- ============ DEBATE ============ -->
+  <section id="debate" class="hidden py-5">
+    <div class="flex items-center gap-4 mb-6">
+      <span class="font-mono text-[11px] uppercase tracking-[0.15em] text-ink">Advocate</span>
+      <div class="flex-1 h-px bg-line"></div>
+      <span class="font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft">the debate</span>
+      <div class="flex-1 h-px bg-line"></div>
+      <span class="font-mono text-[11px] uppercase tracking-[0.15em] text-rust">Skeptic</span>
+    </div>
+    <div id="debate-grid"></div>
+  </section>
+
+  <!-- ============ VERDICT ============ -->
+  <section id="verdict" class="hidden py-8 border-t border-line mt-2">
+    <p class="font-mono text-[11px] uppercase tracking-[0.25em] text-gold mb-4">The Judge's Ruling</p>
+
+    <div class="flex flex-col md:flex-row md:items-start gap-8 mb-8">
+      <div id="verdict-stamp"
+        class="shrink-0 font-display text-2xl font-semibold rounded-lg px-5 py-3 text-center leading-tight text-white"></div>
+      <div class="flex-1 pt-1">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="flex-1 h-2.5 bg-paperDark rounded-full overflow-hidden border border-line">
+            <div id="confidence-bar" class="h-full bg-gold transition-all duration-700 ease-out" style="width:0%"></div>
+          </div>
+          <span id="confidence-label" class="font-mono text-xs text-inkSoft shrink-0"></span>
+        </div>
+        <p id="rationale" class="font-body text-[17px] leading-relaxed text-ink"></p>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="bg-white border border-line rounded-xl p-4">
+        <h3 class="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-inkSoft mb-3">
+          <span aria-hidden="true">⚖️</span> Key tradeoffs
+        </h3>
+        <ul id="tradeoffs-list" class="space-y-1.5"></ul>
+      </div>
+      <div class="bg-white border border-line rounded-xl p-4">
+        <h3 class="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-inkSoft mb-3">
+          <span aria-hidden="true">🔄</span> What would change my mind
+        </h3>
+        <ul id="mind-list" class="space-y-1.5"></ul>
+      </div>
+      <div class="bg-white border border-line rounded-xl p-4">
+        <h3 class="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-inkSoft mb-3">
+          <span aria-hidden="true">❓</span> Open questions
+        </h3>
+        <ul id="questions-list" class="space-y-1.5"></ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ EVIDENCE DETAIL MODAL ============ -->
+<div id="evidence-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div id="evidence-modal-backdrop" class="absolute inset-0 bg-ink/50 backdrop-blur-[2px]"></div>
+  <div class="modal-panel relative bg-paper border border-line rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
+    <button id="evidence-modal-close" type="button" aria-label="Close"
+      class="absolute top-4 right-4 text-inkSoft hover:text-ink transition-colors text-lg leading-none">✕</button>
+    <div id="evidence-modal-tool" class="font-mono text-[11px] uppercase tracking-[0.15em] mb-3"></div>
+    <div id="evidence-modal-query" class="font-display text-lg text-ink mb-4 pr-6"></div>
+    <div id="evidence-modal-source" class="font-mono text-[11px] text-inkSoft mb-4 pb-4 border-b border-line"></div>
+    <div id="evidence-modal-content" class="font-body text-sm leading-relaxed text-ink whitespace-pre-wrap"></div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM MODAL (generic yes/no gate) ============ -->
+<div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div id="confirm-modal-backdrop" class="absolute inset-0 bg-ink/50 backdrop-blur-[2px]"></div>
+  <div class="modal-panel relative bg-white border border-line rounded-xl shadow-2xl max-w-sm w-full p-6">
+    <div class="font-mono text-[11px] uppercase tracking-[0.15em] text-gold mb-2">Heads up</div>
+    <p id="confirm-modal-message" class="font-body text-[15px] leading-relaxed text-ink mb-6"></p>
+    <div class="flex justify-end gap-3">
+      <button id="confirm-modal-cancel" type="button"
+        class="font-mono text-xs uppercase tracking-[0.1em] text-inkSoft hover:text-ink transition-colors px-4 py-2">
+        Cancel
+      </button>
+      <button id="confirm-modal-continue" type="button"
+        class="font-mono text-xs uppercase tracking-[0.1em] bg-ink text-paper px-5 py-2 rounded-md hover:bg-inkSoft transition-colors">
+        Start anyway
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ NEW ACTIVITY TOAST (passive — nothing auto-scrolls) ============ -->
+<button id="new-activity-toast" type="button"
+  class="hidden fixed bottom-6 right-6 z-40 font-mono text-xs uppercase tracking-[0.1em] bg-ink text-paper px-4 py-2.5 rounded-full shadow-lg hover:bg-inkSoft transition-colors">
+  ↓ New activity
+</button>
+
+<script>
+// ---------------------------------------------------------------
+// Predefined cases (embedded so this stays one dependency-light file)
+// ---------------------------------------------------------------
+const CASES = [
+  {
+    id: 'notenest-summaries',
+    label: 'AI Summaries for NoteNest',
+    question: 'Should we add AI-generated summaries to our note-taking app?',
+    context: [
+      { title: 'prd.md', content: `# PRD: AI-Generated Summaries for NoteNest
+
+**Status:** Proposal / Pre-decision
+**Author:** Product team
+**Last updated:** 2026-08-01
+
+## Problem
+
+NoteNest users accumulate long notes — meeting notes, research dumps, lecture
+captures — and tell us they struggle to find the "so what" when they return to
+them later. In our last quarterly survey, "hard to review long notes" was the
+second most-cited frustration (after search quality). Power users with 200+
+notes report they rarely revisit anything longer than a screen.
+
+Support tickets referencing "too long to reread" or "can't find the key point"
+have risen roughly 30% over the last two quarters, though absolute volume
+remains modest (~40 tickets/month).
+
+## Proposed solution
+
+Add a one-tap "Summarize" action to any note. It generates a short
+(3–5 sentence) summary plus a bulleted list of action items detected in the
+note. The summary is cached and shown collapsed at the top of the note; users
+can regenerate or dismiss it.
+
+### In scope (v1)
+- On-demand summarization of a single note
+- Summary + extracted action items
+- Cached result, manual regenerate
+- English only
+
+### Explicitly out of scope (v1)
+- Auto-summarization of every note on save
+- Cross-note / folder-level summaries
+- Non-English languages
+- Editing the summary inline
+
+## Rough cost & effort
+
+- Engineering: ~1 engineer-month for v1 (integration, caching, UI).
+- Inference cost: estimated $0.004–$0.01 per summary depending on note
+  length and model. At projected usage (~15% of active users summarizing
+  ~5 notes/month), this lands around $2,500–$6,000/month at current scale.
+- Ongoing: prompt maintenance, quality monitoring, handling user reports
+  of bad summaries.
+
+## Open risks
+
+- Accuracy on long/messy notes: summaries of unstructured, stream-of-
+  consciousness notes may miss or invent key points. Hallucinated action items
+  are a particular concern — a fabricated "TODO" is worse than none.
+- Trust: if early summaries are wrong, users may distrust the feature (and
+  the product) permanently. First impressions are hard to reverse.
+- Value concentration: benefit skews toward power users with long notes;
+  the median user's notes are short enough not to need summarizing.
+- Cost scaling: if adoption is much higher than projected, inference cost
+  could outpace the plan.
+
+## Success metrics (proposed)
+
+- ≥20% of active users try Summarize within first month
+- ≥40% of those become repeat users (summarize again within 2 weeks)
+- Summary "thumbs down" rate <15%
+- No measurable increase in churn attributable to the feature` },
+      { title: 'feedback.md', content: `# User Feedback: Summaries / Long-Note Review
+
+Collected from support tickets, in-app feedback, and user interviews.
+Sentiment is mixed on purpose — this is raw, not curated.
+
+## Wants it
+
+- "I take huge meeting notes and never read them again. If the app could just
+  tell me the three things I actually need to do, I'd pay more for that." — P2, interview
+- "Please add summaries. I have 400 notes and reviewing before a 1:1 is
+  painful." — in-app feedback
+- "A TL;DR at the top of long notes would be a game changer for my research
+  workflow." — support ticket
+- "I'd use this every single day for lecture notes." — student user, interview
+- "Auto action-items would save me from re-reading everything after standup." — in-app
+
+## Worried about accuracy
+
+- "I tried a summary feature in another app and it confidently made up a
+  deadline that didn't exist. I stopped trusting it immediately." — P7, interview
+- "If it summarizes wrong and I act on it, that's worse than no summary. How
+  will I know when to trust it?" — in-app feedback
+- "My notes are messy and half-finished. I doubt an AI could make sense of
+  them." — support ticket
+- "Would want to see the summary flagged clearly as AI-generated so I don't
+  mistake it for something I wrote." — interview
+
+## Wouldn't use it / indifferent
+
+- "My notes are short. I don't need anything summarized." — in-app feedback
+- "I organize with headers already, so a summary would be redundant for me." — P4, interview
+- "Honestly I'd just turn this off. I like reading my own notes." — in-app
+- "Not a priority for me — I care way more about faster search." — support ticket
+
+## Adjacent signal
+
+- "The thing I actually want is better search, not summaries." — recurring theme, ~5 users
+- "Could the summary work across a whole folder? One note at a time isn't that
+  useful for my project research." — interview (note: out of v1 scope)
+- "Does this cost extra? I'm already on the paid tier." — pricing question, several users` },
+    ],
+  },
+  {
+    id: 'notenest-api',
+    label: 'Public API & Webhooks',
+    question: 'Should we build a public API and webhooks for NoteNest?',
+    context: [
+      { title: 'spec.md', content: `# PRD: Public API & Webhooks for NoteNest
+
+**Status:** Proposal / Pre-decision
+
+## Problem
+
+Several power users and two prospective enterprise customers have asked to
+programmatically sync notes with other tools (their own dashboards,
+Zapier-style automations). Sales says the lack of an API has stalled one
+enterprise deal worth roughly $40k/year.
+
+## Proposed solution
+
+A read/write REST API (notes, folders, tags) plus webhooks for
+note-created/updated/deleted events. OAuth-based API keys, rate-limited.
+
+### In scope (v1)
+- REST endpoints for CRUD on notes
+- Webhook subscriptions for note events
+- Per-user API key management in settings
+
+### Explicitly out of scope (v1)
+- GraphQL
+- Bulk export endpoints
+- Third-party app marketplace / OAuth for external apps
+
+## Rough cost & effort
+
+- Engineering: ~6 engineer-weeks for v1 (API surface, auth, rate limiting, docs)
+- Ongoing: API support burden, versioning commitment once shipped
+
+## Open risks
+
+- Once public, the API becomes a long-term support commitment — breaking
+  changes get expensive fast.
+- Rate-limiting and abuse prevention need real investment, or the API becomes
+  a vector for scraping.
+- Unclear how many users beyond the two enterprise leads would actually use it.` },
+      { title: 'feedback.md', content: `# User Feedback: API Access
+
+## Wants it
+
+- "We'd sync notes into our internal wiki automatically if there was an API." — enterprise prospect, sales call
+- "I already scrape my own notes with a browser extension because there's no API. A real one would save me the hassle." — power user, support ticket
+- "Zapier integration would be huge for my workflow." — in-app feedback
+
+## Skeptical
+
+- "Honestly, most of our users don't even know what an API is. This feels like a niche ask." — CS lead, internal note
+- "If we ship this, we're committing to it forever. Are we ready to support that?" — eng lead, internal note
+
+## Adjacent signal
+
+- "I just want a way to export everything to Markdown, I don't need a full API." — support ticket
+- "Does this affect pricing? Would this be enterprise-only?" — pricing question, prospect` },
+    ],
+  },
+];
+
+// ---------------------------------------------------------------
+// Small DOM helper (avoids innerHTML for anything with untrusted text)
+// ---------------------------------------------------------------
+function h(tag, opts = {}, children = []) {
+  const node = document.createElement(tag);
+  if (opts.class) node.className = opts.class;
+  if (opts.text !== undefined) node.textContent = opts.text;
+  if (opts.attrs) for (const [k, v] of Object.entries(opts.attrs)) node.setAttribute(k, v);
+  for (const c of children) if (c) node.appendChild(c);
+  return node;
+}
+
+// ---------------------------------------------------------------
+// Elements
+// ---------------------------------------------------------------
+const caseChipsEl     = document.getElementById('case-chips');
+const setupForm       = document.getElementById('setup-form');
+const questionInput   = document.getElementById('question-input');
+const contextBlocksEl = document.getElementById('context-blocks');
+const addContextBtn   = document.getElementById('add-context-btn');
+const roundsSelect    = document.getElementById('rounds-select');
+const roundsHintEl    = document.getElementById('rounds-hint');
+const startBtn        = document.getElementById('start-btn');
+const replayBtn       = document.getElementById('replay-btn');
+const errorBanner     = document.getElementById('error-banner');
+
+const debateSection = document.getElementById('debate');
+const debateGrid     = document.getElementById('debate-grid');
+const progressBarEl  = document.getElementById('progress-bar');
+const newActivityToast = document.getElementById('new-activity-toast');
+
+const verdictSection   = document.getElementById('verdict');
+const verdictStampEl   = document.getElementById('verdict-stamp');
+const confidenceBar    = document.getElementById('confidence-bar');
+const confidenceLabel  = document.getElementById('confidence-label');
+const rationaleEl       = document.getElementById('rationale');
+const tradeoffsList     = document.getElementById('tradeoffs-list');
+const mindList          = document.getElementById('mind-list');
+const questionsList     = document.getElementById('questions-list');
+
+const evidenceModal          = document.getElementById('evidence-modal');
+const evidenceModalBackdrop  = document.getElementById('evidence-modal-backdrop');
+const evidenceModalCloseBtn  = document.getElementById('evidence-modal-close');
+const evidenceModalTool      = document.getElementById('evidence-modal-tool');
+const evidenceModalQuery     = document.getElementById('evidence-modal-query');
+const evidenceModalSource    = document.getElementById('evidence-modal-source');
+const evidenceModalContent   = document.getElementById('evidence-modal-content');
+
+const confirmModal         = document.getElementById('confirm-modal');
+const confirmModalBackdrop = document.getElementById('confirm-modal-backdrop');
+const confirmModalMessage  = document.getElementById('confirm-modal-message');
+const confirmModalCancel   = document.getElementById('confirm-modal-cancel');
+const confirmModalContinue = document.getElementById('confirm-modal-continue');
+
+const state = { running: false, currentRound: 0, roundCells: {}, roundMarkers: {}, progressSteps: {} };
+
+// ---------------------------------------------------------------
+// Evidence detail modal — "view details" on any evidence row
+// ---------------------------------------------------------------
+function openEvidenceModal(tc) {
+  const isWeb = tc.tool === 'web_search';
+  evidenceModalTool.textContent = isWeb ? '🌐 Web Search' : '📄 Internal Context';
+  evidenceModalTool.className = `font-mono text-[11px] uppercase tracking-[0.15em] mb-3 ${isWeb ? 'text-slateBlue' : 'text-teal'}`;
+  evidenceModalQuery.textContent = `"${tc.query}"`;
+  evidenceModalSource.textContent = `Source: ${tc.source}`;
+  evidenceModalContent.textContent = tc.snippet || '(no content captured for this evidence)';
+  evidenceModal.classList.remove('hidden');
+}
+
+function closeEvidenceModal() {
+  evidenceModal.classList.add('hidden');
+}
+
+evidenceModalBackdrop.addEventListener('click', closeEvidenceModal);
+evidenceModalCloseBtn.addEventListener('click', closeEvidenceModal);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !evidenceModal.classList.contains('hidden')) closeEvidenceModal();
+});
+
+// ---------------------------------------------------------------
+// Confirm modal — a styled, Promise-based replacement for window.confirm(),
+// so gates like "no context supplied" match the app's own visual language.
+// ---------------------------------------------------------------
+let confirmModalResolve = null;
+
+function askConfirm(message) {
+  confirmModalMessage.textContent = message;
+  confirmModal.classList.remove('hidden');
+  confirmModalContinue.focus();
+  return new Promise((resolve) => { confirmModalResolve = resolve; });
+}
+
+function resolveConfirm(result) {
+  confirmModal.classList.add('hidden');
+  if (confirmModalResolve) {
+    confirmModalResolve(result);
+    confirmModalResolve = null;
+  }
+}
+
+confirmModalCancel.addEventListener('click', () => resolveConfirm(false));
+confirmModalContinue.addEventListener('click', () => resolveConfirm(true));
+confirmModalBackdrop.addEventListener('click', () => resolveConfirm(false));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !confirmModal.classList.contains('hidden')) resolveConfirm(false);
+});
+
+// ---------------------------------------------------------------
+// Setup panel: case picker + context blocks
+// ---------------------------------------------------------------
+function createContextBlockRow(title, content) {
+  const row = h('div', { class: 'context-block bg-white border border-line rounded-lg p-3 space-y-2' });
+
+  const topRow = h('div', { class: 'flex items-center gap-2' });
+  const titleInput = h('input', {
+    class: 'ctx-title flex-1 bg-transparent font-mono text-[11px] uppercase tracking-wide text-inkSoft placeholder:text-inkSoft/40 border-b border-transparent focus:border-line pb-1',
+    attrs: { type: 'text', placeholder: 'Label (e.g. Spec, Feedback)' },
+  });
+  titleInput.value = title || '';
+  const removeBtn = h('button', {
+    class: 'ctx-remove text-inkSoft hover:text-rust transition-colors text-sm px-1',
+    text: '✕',
+    attrs: { type: 'button', 'aria-label': 'Remove source' },
+  });
+  removeBtn.addEventListener('click', () => {
+    if (contextBlocksEl.children.length > 1) row.remove();
+  });
+  topRow.append(titleInput, removeBtn);
+
+  const textarea = h('textarea', {
+    class: 'ctx-content w-full bg-transparent font-body text-[15px] leading-relaxed resize-y min-h-[6rem]',
+    attrs: { rows: '4', placeholder: 'Paste content…' },
+  });
+  textarea.value = content || '';
+
+  row.append(topRow, textarea);
+  return row;
+}
+
+// Start Debate is disabled whenever there's no question to argue, or a run
+// is already in progress — recomputed on every input change, case load, and
+// busy-state change, rather than tracked ad hoc in each of those places.
+function refreshStartButtonState() {
+  const disabled = state.running || !questionInput.value.trim();
+  startBtn.disabled = disabled;
+  startBtn.classList.toggle('opacity-50', disabled);
+  startBtn.classList.toggle('cursor-not-allowed', disabled);
+}
+
+function loadCaseIntoForm(caseObj) {
+  questionInput.value = caseObj.question;
+  contextBlocksEl.innerHTML = '';
+  caseObj.context.forEach(c => contextBlocksEl.appendChild(createContextBlockRow(c.title, c.content)));
+  setActiveChip(caseObj.id);
+  refreshStartButtonState();
+}
+
+function clearForm() {
+  questionInput.value = '';
+  contextBlocksEl.innerHTML = '';
+  contextBlocksEl.appendChild(createContextBlockRow('Spec', ''));
+  contextBlocksEl.appendChild(createContextBlockRow('Feedback', ''));
+  setActiveChip('blank');
+  questionInput.focus();
+  refreshStartButtonState();
+}
+
+questionInput.addEventListener('input', refreshStartButtonState);
+
+function setActiveChip(id) {
+  // Scoped to the whole picker row, not just #case-chips — "start from
+  // scratch" lives outside that div now (it's not one of the examples),
+  // but still needs its active state toggled like any other chip.
+  document.querySelectorAll('#case-picker .case-chip').forEach(chip => {
+    chip.classList.toggle('is-active-chip', chip.dataset.caseId === id);
+  });
+}
+
+function renderCaseChips() {
+  CASES.forEach(c => {
+    const chip = h('button', {
+      class: 'case-chip font-mono text-[11px] uppercase tracking-wide px-3 py-1.5 rounded-full border border-line transition-colors',
+      text: c.label,
+      attrs: { type: 'button' },
+    });
+    chip.dataset.caseId = c.id;
+    chip.addEventListener('click', () => loadCaseIntoForm(c));
+    caseChipsEl.appendChild(chip);
+  });
+
+  const blankChip = document.getElementById('blank-chip');
+  blankChip.dataset.caseId = 'blank';
+  blankChip.addEventListener('click', clearForm);
+}
+
+addContextBtn.addEventListener('click', () => {
+  contextBlocksEl.appendChild(createContextBlockRow('', ''));
+});
+
+// Each round is one full exchange (Advocate argues, Skeptic rebuts, fact-check)
+// plus its own set of tool calls — so round count is really a cost/depth dial,
+// not just a number. Spell out what each specific choice trades off.
+const ROUND_HINTS = {
+  1: 'Cheapest & fastest — one exchange each, no rebuttal.',
+  2: 'Cheap, quick — one rebuttal round each.',
+  3: 'Moderate cost — room to rebut and dig up new evidence.',
+  4: 'Higher cost — deeper evidence, longer wait.',
+  5: 'Most expensive — most thorough, slowest option.',
+};
+
+function updateRoundsHint() {
+  roundsHintEl.textContent = ROUND_HINTS[roundsSelect.value] || '';
+}
+
+roundsSelect.addEventListener('change', updateRoundsHint);
+
+function collectContext() {
+  return Array.from(contextBlocksEl.querySelectorAll('.context-block'))
+    .map(row => ({
+      title: row.querySelector('.ctx-title').value.trim(),
+      content: row.querySelector('.ctx-content').value.trim(),
+    }))
+    .filter(c => c.content);
+}
+
+// ---------------------------------------------------------------
+// Debate rendering
+// ---------------------------------------------------------------
+function resetDebateView() {
+  debateGrid.innerHTML = '';
+  state.roundCells = {};
+  state.roundMarkers = {};
+  state.progressSteps = {};
+  state.currentRound = 0;
+  verdictSection.classList.add('hidden');
+  errorBanner.classList.add('hidden');
+  hideNewActivityToast();
+}
+
+// ---------------------------------------------------------------
+// New activity toast — purely passive notification, nothing here ever
+// scrolls on its own. After any content lands, if the user isn't already
+// near the bottom (i.e. they wouldn't see it), let them know; a click jumps
+// down once, on demand. The auto-follow version of this caused visible
+// scroll jitter in real use (competing scrollIntoView calls, browser scroll
+// anchoring reacting to the same layout changes, etc.) — dropping the
+// "follow automatically" half entirely removes that risk, since the only
+// programmatic scroll left is the one the user explicitly asks for.
+// ---------------------------------------------------------------
+const NEAR_BOTTOM_PX = 200;
+
+function isNearBottom() {
+  return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - NEAR_BOTTOM_PX;
+}
+
+function showNewActivityToast() {
+  if (!newActivityToast.classList.contains('hidden')) return; // already showing
+  newActivityToast.classList.remove('hidden');
+  newActivityToast.classList.remove('card-in');
+  void newActivityToast.offsetWidth; // reflow to retrigger the entrance animation
+  newActivityToast.classList.add('card-in');
+}
+
+function hideNewActivityToast() {
+  newActivityToast.classList.add('hidden');
+}
+
+// Call after appending new debate content — shows the toast only if the
+// user would otherwise miss it.
+function noteNewActivity() {
+  if (!isNearBottom()) showNewActivityToast();
+}
+
+newActivityToast.addEventListener('click', () => {
+  window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  hideNewActivityToast();
+});
+
+// If the user scrolls down to the live edge themselves, no need to keep
+// telling them about activity they're now already looking at.
+let toastScrollTimer = null;
+window.addEventListener('scroll', () => {
+  if (newActivityToast.classList.contains('hidden')) return;
+  clearTimeout(toastScrollTimer);
+  toastScrollTimer = setTimeout(() => {
+    if (isNearBottom()) hideNewActivityToast();
+  }, 150);
+});
+
+// ---------------------------------------------------------------
+// Progress bar: a lightweight, sticky step readout — not a full nav
+// sidebar. Mostly informational while the debate is live (round/verdict
+// state at a glance); each step is clickable so it doubles as a way to
+// jump back to a specific round after the debate finishes.
+// ---------------------------------------------------------------
+const PROGRESS_STEP_STYLE = {
+  upcoming: { dot: 'border border-inkSoft', text: 'text-inkSoft' },
+  active:   { dot: 'border border-ink bg-ink', text: 'text-ink' },
+  done:     { dot: 'border border-teal bg-teal', text: 'text-inkSoft' },
+};
+
+function applyStepState(step, stateName) {
+  const s = PROGRESS_STEP_STYLE[stateName];
+  step.dot.className = `inline-block w-2 h-2 rounded-full shrink-0 ${s.dot}`;
+  step.text.className = s.text;
+}
+
+function buildProgressStep(label, onClick) {
+  const dot = h('span', {});
+  const text = h('span', { text: label });
+  const btn = h('button', {
+    class: 'flex items-center gap-1.5 transition-opacity hover:opacity-70',
+    attrs: { type: 'button' },
+  }, [dot, text]);
+  btn.addEventListener('click', onClick);
+  const step = { btn, dot, text };
+  applyStepState(step, 'upcoming');
+  return step;
+}
+
+function buildProgressBar(maxRounds) {
+  progressBarEl.innerHTML = '';
+  state.progressSteps = {};
+  const row = h('div', { class: 'flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-wide' });
+
+  for (let n = 1; n <= maxRounds; n++) {
+    const step = buildProgressStep(`Round ${n}`, () => {
+      const marker = state.roundMarkers[n];
+      if (marker) marker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    state.progressSteps[`round-${n}`] = step;
+    row.appendChild(step.btn);
+    row.appendChild(h('span', { class: 'text-line', text: '—' }));
+  }
+
+  const verdictStep = buildProgressStep('Verdict', () => {
+    if (!verdictSection.classList.contains('hidden')) {
+      verdictSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+  state.progressSteps.verdict = verdictStep;
+  row.appendChild(verdictStep.btn);
+
+  progressBarEl.appendChild(row);
+  progressBarEl.classList.remove('hidden');
+}
+
+function markProgress(currentRound, verdictReached) {
+  Object.entries(state.progressSteps).forEach(([key, step]) => {
+    if (key === 'verdict') {
+      applyStepState(step, verdictReached ? 'done' : 'upcoming');
+      return;
+    }
+    const roundNum = parseInt(key.split('-')[1], 10);
+    if (roundNum < currentRound || verdictReached) applyStepState(step, 'done');
+    else if (roundNum === currentRound) applyStepState(step, 'active');
+    else applyStepState(step, 'upcoming');
+  });
+}
+
+// A round cell starts "in progress" (dashed border, no argument yet) and is
+// built up live: evidence rows land as tool_call events arrive, the argument
+// lands once the turn event arrives, then the card is "finalized" (solid
+// border) — no wholesale replace, so nothing jumps or flickers mid-round.
+function buildInProgressCard(role, round) {
+  const roleColor = role === 'advocate' ? 'text-ink' : 'text-rust';
+  const dotColor = role === 'advocate' ? 'bg-ink' : 'bg-rust';
+
+  // A small status dot carries the role identity instead of a full-height
+  // colored left border — the border-strip-per-card pattern is a very
+  // recognizable "AI-generated UI" tell; a contained dot reads as intentional.
+  const roleDot = h('span', { class: `w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}` });
+  const roleText = h('span', { text: role === 'advocate' ? 'Advocate' : 'Skeptic' });
+  const roleLabel = h('span', { class: `flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.15em] ${roleColor}` }, [roleDot, roleText]);
+
+  const header = h('div', { class: 'flex items-center justify-between mb-3' }, [
+    roleLabel,
+    h('span', { class: 'font-mono text-[11px] text-inkSoft', text: `Round ${round}` }),
+  ]);
+  const argumentSlot = h('div', { class: 'argument-slot' });
+  const evidenceLabel = h('div', { class: 'font-mono text-xs uppercase tracking-[0.15em] text-inkSoft mb-1', text: 'Evidence trail' });
+  const evidenceList = h('div', { class: 'space-y-1.5' });
+  const pulseLine = h('div', { class: 'pulse-dots font-mono text-xs text-inkSoft mt-2', text: 'gathering evidence …' });
+
+  const cell = h('div', { class: 'turn-card card-in min-w-0 bg-paperDark border border-line rounded-xl p-4' });
+  cell.append(header, argumentSlot, evidenceLabel, evidenceList, pulseLine);
+
+  return { cell, argumentSlot, evidenceList, pulseLine };
+}
+
+function buildRoundMarker(n) {
+  const pill = h('div', {
+    class: 'font-mono text-xs text-gold border border-gold/40 rounded-full px-3 py-1 bg-gold/10 whitespace-nowrap',
+    text: `ROUND ${n}`,
+  });
+  const rail = h('div', { class: 'w-px flex-1 bg-line/60' });
+  return h('div', { class: 'self-stretch flex flex-col items-center gap-2 pt-1' }, [pill, rail]);
+}
+
+function addRoundRow(n) {
+  const advocate = buildInProgressCard('advocate', n);
+  const skeptic  = buildInProgressCard('skeptic', n);
+  const marker = buildRoundMarker(n);
+
+  debateGrid.append(advocate.cell, marker, skeptic.cell);
+  state.roundCells[n] = { advocate, skeptic };
+  state.roundMarkers[n] = marker;
+  noteNewActivity();
+}
+
+function buildEvidenceRow(tc) {
+  const isWeb = tc.tool === 'web_search';
+  const row = h('div', {
+    class: `evidence-row flex items-start gap-2 text-xs rounded-md px-2.5 py-1.5 ${isWeb ? 'bg-slateBlue/10' : 'bg-teal/10'}`,
+  });
+  const icon = h('span', { class: 'shrink-0 leading-4', text: isWeb ? '🌐' : '📄' });
+  const meta = h('div', { class: 'flex-1 min-w-0' });
+  const topLine = h('div', { class: 'flex items-center gap-2' });
+  const query = h('div', { class: 'font-mono text-ink italic truncate flex-1', text: `"${tc.query}"` });
+  topLine.appendChild(query);
+  if (tc.snippet) {
+    const detailsBtn = h('button', {
+      class: `shrink-0 font-mono text-[11px] uppercase tracking-wide ${isWeb ? 'text-slateBlue' : 'text-teal'} hover:underline`,
+      text: 'view details →',
+      attrs: { type: 'button' },
+    });
+    detailsBtn.addEventListener('click', () => openEvidenceModal(tc));
+    topLine.appendChild(detailsBtn);
+  }
+  const source = h('div', { class: `font-mono text-[11px] mt-0.5 truncate ${isWeb ? 'text-slateBlue' : 'text-teal'}`, text: tc.source });
+  meta.append(topLine, source);
+  row.append(icon, meta);
+  return row;
+}
+
+function addToolCall(evt) {
+  const rec = state.roundCells[evt.round] && state.roundCells[evt.round][evt.role];
+  if (!rec) return;
+  if (rec.pulseLine) rec.pulseLine.textContent = 'weighing the evidence …';
+  rec.evidenceList.appendChild(buildEvidenceRow(evt));
+  noteNewActivity();
+}
+
+function finalizeTurn(evt) {
+  const rec = state.roundCells[evt.round] && state.roundCells[evt.round][evt.role];
+  if (!rec) return;
+
+  if (!rec.argumentSlot.firstChild) {
+    rec.argumentSlot.appendChild(h('p', { class: 'font-body text-[17px] leading-relaxed text-ink mb-4 card-in', text: evt.argument }));
+  }
+  // Fallback: if live tool_call events were missed for some reason (or this
+  // came from a saved run without them), the turn event still carries the
+  // full list — populate from it rather than showing an empty trail.
+  if (rec.evidenceList.children.length === 0 && evt.tool_calls && evt.tool_calls.length) {
+    evt.tool_calls.forEach(tc => rec.evidenceList.appendChild(buildEvidenceRow(tc)));
+  }
+  if (rec.pulseLine) {
+    rec.pulseLine.remove();
+    rec.pulseLine = null;
+  }
+
+  rec.cell.className = 'turn-card min-w-0 bg-white border border-line rounded-xl shadow-sm p-4';
+  noteNewActivity();
+}
+
+function buildFlagRow(f) {
+  const supported = f.supported;
+  const row = h('div', {
+    class: 'flex items-start gap-2 text-[15px] py-1.5 border-b border-line/50 last:border-b-0',
+  });
+  const icon = h('span', { class: `shrink-0 ${supported ? 'text-teal' : 'text-rust'}`, text: supported ? '✓' : '⚠️' });
+  const body = h('div', { class: 'flex-1' });
+  // De-emphasize supported claims with color hue + weight (still full-opacity,
+  // still AA-legible), not opacity — stacking alpha on top of an already-soft
+  // color is what made this unreadable before.
+  body.append(
+    h('div', { class: supported ? 'text-inkSoft' : 'text-ink font-medium', text: f.claim }),
+    h('div', { class: 'text-inkSoft text-[13px] mt-0.5', text: f.note }),
+    h('span', { class: `font-mono text-[11px] uppercase ${supported ? 'text-teal' : 'text-rust'}`, text: f.role }),
+  );
+  row.append(icon, body);
+  return row;
+}
+
+function addFlags(flags) {
+  const round = state.currentRound;
+  const unsupported = flags.filter(f => !f.supported);
+  const supported = flags.filter(f => f.supported);
+
+  const strip = h('div', { class: 'flags-strip card-in min-w-0 bg-paperDark border border-line rounded-xl p-4 col-span-full' });
+  strip.appendChild(h('div', { class: 'font-mono text-xs uppercase tracking-[0.15em] text-inkSoft mb-2', text: `Fact-check — Round ${round}` }));
+
+  if (!unsupported.length && !supported.length) {
+    strip.appendChild(h('div', { class: 'text-xs text-inkSoft italic', text: 'No claims assessed this round.' }));
+  } else {
+    // Unsupported claims lead, at full visual weight; supported claims follow, subdued —
+    // both fully listed with the fact-checker's note on why, not just a tally.
+    unsupported.forEach(f => strip.appendChild(buildFlagRow(f)));
+    supported.forEach(f => strip.appendChild(buildFlagRow(f)));
+  }
+  debateGrid.appendChild(strip);
+  noteNewActivity();
+}
+
+// ---------------------------------------------------------------
+// Verdict rendering
+// ---------------------------------------------------------------
+const REC_LABEL = { build: 'Build', dont_build: "Don't Build", build_descoped: 'Build, But Descope' };
+const REC_STYLE = {
+  build: 'bg-teal',
+  dont_build: 'bg-rust',
+  build_descoped: 'bg-gold',
+};
+
+function fillList(ul, items) {
+  ul.innerHTML = '';
+  (items || []).forEach(item => {
+    ul.appendChild(h('li', { class: 'flex gap-2 text-[15px] leading-relaxed' }, [
+      h('span', { class: 'text-gold font-mono shrink-0', text: '—' }),
+      h('span', { class: 'text-ink', text: item }),
+    ]));
+  });
+}
+
+function showVerdict(v) {
+  verdictStampEl.textContent = REC_LABEL[v.recommendation] || v.recommendation;
+  verdictStampEl.className = `shrink-0 font-display text-2xl font-semibold rounded-lg px-5 py-3 text-center leading-tight text-white ${REC_STYLE[v.recommendation] || 'bg-ink'}`;
+
+  const pct = Math.round((v.confidence || 0) * 100);
+  confidenceBar.style.width = `${pct}%`;
+  confidenceBar.className = `h-full transition-all duration-700 ease-out ${REC_STYLE[v.recommendation] || 'bg-gold'}`;
+  confidenceLabel.textContent = `${pct}% confidence`;
+  rationaleEl.textContent = v.confidence_rationale || '';
+
+  fillList(tradeoffsList, v.key_tradeoffs);
+  fillList(mindList, v.what_would_change_my_mind);
+  fillList(questionsList, v.open_questions);
+
+  verdictSection.classList.remove('hidden');
+  verdictStampEl.classList.remove('animate-stamp');
+  void verdictStampEl.offsetWidth; // reflow to retrigger the keyframe
+  verdictStampEl.classList.add('animate-stamp');
+  verdictSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ---------------------------------------------------------------
+// Event dispatch + SSE streaming
+// ---------------------------------------------------------------
+function handleEvent(evt) {
+  switch (evt.type) {
+    case 'round':
+      state.currentRound = evt.round;
+      addRoundRow(evt.round);
+      markProgress(evt.round, false);
+      break;
+    case 'tool_call':
+      addToolCall(evt);
+      break;
+    case 'turn':
+      finalizeTurn(evt);
+      break;
+    case 'flags':
+      addFlags(evt.flags || []);
+      break;
+    case 'verdict':
+      showVerdict(evt.verdict);
+      markProgress(state.currentRound, true);
+      break;
+    case 'done':
+      break;
+  }
+}
+
+function showError(message) {
+  errorBanner.textContent = message;
+  errorBanner.classList.remove('hidden');
+}
+
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function setBusy(loading, replaying = false) {
+  startBtn.textContent = (loading && !replaying) ? 'Debating…' : 'Start Debate';
+  refreshStartButtonState(); // covers both "busy" and "no question" disable reasons
+
+  replayBtn.disabled = loading;
+  replayBtn.textContent = (loading && replaying) ? '▶ Replaying…' : '▶ Replay saved example';
+  replayBtn.classList.toggle('opacity-40', loading);
+  replayBtn.classList.toggle('cursor-not-allowed', loading);
+}
+
+async function startDebate(question, maxRounds, context) {
+  resetDebateView();
+  buildProgressBar(maxRounds);
+  debateSection.classList.remove('hidden');
+  debateSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  state.running = true;
+  setBusy(true);
+
+  try {
+    const res = await fetch('/api/debate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, max_rounds: maxRounds, context }),
+    });
+    if (!res.ok || !res.body) {
+      throw new Error(`Request failed (${res.status})`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop(); // keep the (possibly incomplete) tail
+
+      for (const part of parts) {
+        const line = part.trim();
+        if (!line.startsWith('data:')) continue;
+        const jsonStr = line.slice(5).trim();
+        if (!jsonStr) continue;
+        try {
+          handleEvent(JSON.parse(jsonStr));
+        } catch (e) {
+          console.error('Failed to parse SSE chunk', jsonStr, e);
+        }
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    showError(`Something went wrong: ${err.message}`);
+  } finally {
+    state.running = false;
+    setBusy(false);
+  }
+}
+
+// Replays a saved event sequence (captured from a real run) through the exact
+// same renderer as a live debate — no API calls, so layout/style iteration is free.
+async function replayExample() {
+  if (state.running) return;
+
+  resetDebateView();
+  debateSection.classList.remove('hidden');
+  debateSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  state.running = true;
+  setBusy(true, true);
+
+  try {
+    const res = await fetch('/examples/notenest-summaries.json');
+    if (!res.ok) throw new Error(`Failed to load example (${res.status})`);
+    const events = await res.json();
+
+    const roundNumbers = events.filter(e => e.type === 'round').map(e => e.round);
+    buildProgressBar(roundNumbers.length ? Math.max(...roundNumbers) : 1);
+
+    for (const evt of events) {
+      handleEvent(evt);
+      await sleep(evt.type === 'tool_call' ? 250 : 400); // mirrors the live backend's pacing
+    }
+  } catch (err) {
+    console.error(err);
+    showError(`Couldn't load the saved example: ${err.message}`);
+  } finally {
+    state.running = false;
+    setBusy(false);
+  }
+}
+
+setupForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (state.running) return;
+
+  const question = questionInput.value.trim();
+  if (!question) {
+    questionInput.focus();
+    return;
+  }
+  const context = collectContext();
+  if (context.length === 0) {
+    const proceed = await askConfirm(
+      "No context provided. Without supporting documents, the Advocate and Skeptic " +
+      "have nothing to search — the debate will run on general knowledge alone, and " +
+      "results will most likely be shallow or generic. Start anyway?"
+    );
+    if (!proceed) return;
+  }
+
+  const maxRounds = parseInt(roundsSelect.value, 10);
+  startDebate(question, maxRounds, context);
+});
+
+replayBtn.addEventListener('click', replayExample);
+
+// ---------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------
+renderCaseChips();
+loadCaseIntoForm(CASES[0]);
+updateRoundsHint();
+</script>
+</body>
+</html>
