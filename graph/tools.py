@@ -1,8 +1,13 @@
 import os
+import uuid
+import contextvars
+from typing import Optional
 import requests
 from pydantic import BaseModel
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langsmith import traceable
@@ -17,37 +22,81 @@ class Evidence(BaseModel):
 
 
 # ---------------------------------------------------------------
-# Closed-world: internal context retriever (PRD + feedback)
+# Closed-world: internal context retriever (per-request context,
+# falling back to the default PRD + feedback docs)
 # ---------------------------------------------------------------
 
-_retriever = None  # module-level cache so we embed only once
+def build_retriever_from_docs(docs: list[tuple[str, str]]) -> Optional[VectorStoreRetriever]:
+    """Build a fresh retriever over (title, content) pairs.
 
-def _build_retriever():
-    global _retriever
-    if _retriever is not None:
-        return _retriever
+    Each call gets its own Chroma collection (a unique collection_name)
+    rather than the client's default one. Chroma's default in-memory
+    client is process-wide and shared across every Chroma(...) instance
+    with no persist_directory — reusing the default collection name would
+    make unrelated requests' documents pile into the same collection.
+    """
+    documents = [
+        Document(page_content=content.strip(), metadata={"source": title or f"context-{i+1}"})
+        for i, (title, content) in enumerate(docs)
+        if content and content.strip()
+    ]
+    if not documents:
+        return None
+
+    chunks = RecursiveCharacterTextSplitter(
+        chunk_size=500, chunk_overlap=50
+    ).split_documents(documents)
+
+    store = Chroma.from_documents(
+        chunks, OpenAIEmbeddings(), collection_name=f"debate-{uuid.uuid4().hex}"
+    )
+    return store.as_retriever(search_kwargs={"k": 3})
+
+
+_default_retriever: Optional[VectorStoreRetriever] = None  # cache: default docs, built once
+
+def _get_default_retriever() -> Optional[VectorStoreRetriever]:
+    """Fallback retriever over the fixed context/*.md files, for callers
+    (e.g. test_tools.py) that run outside a request context."""
+    global _default_retriever
+    if _default_retriever is not None:
+        return _default_retriever
 
     docs = []
     for path in ["context/prd.md", "context/feedback.md"]:
         loaded = TextLoader(path).load()
         for d in loaded:
-            d.metadata["source"] = os.path.basename(path)
-        docs.extend(loaded)
+            docs.append((os.path.basename(path), d.page_content))
 
-    chunks = RecursiveCharacterTextSplitter(
-        chunk_size=500, chunk_overlap=50
-    ).split_documents(docs)
+    _default_retriever = build_retriever_from_docs(docs)
+    return _default_retriever
 
-    store = Chroma.from_documents(chunks, OpenAIEmbeddings())
-    _retriever = store.as_retriever(search_kwargs={"k": 3})
-    return _retriever
+
+# Request-scoped retriever: set per-request so search_internal_context
+# searches THAT run's context, without threading extra params through
+# graph/nodes.py's agent loop. Isolated per asyncio task, so concurrent
+# debates never see each other's context.
+_retriever_ctx: contextvars.ContextVar[Optional[VectorStoreRetriever]] = (
+    contextvars.ContextVar("active_retriever", default=None)
+)
+
+def set_active_retriever(retriever: Optional[VectorStoreRetriever]) -> contextvars.Token:
+    return _retriever_ctx.set(retriever)
+
+def clear_active_retriever(token: contextvars.Token) -> None:
+    _retriever_ctx.reset(token)
+
 
 @traceable(run_type="tool")
 def search_internal_context(query: str) -> list[Evidence]:
-    """Search the product's own PRD + user feedback.
+    """Search the product's own context docs (the current request's
+    supplied context, or the default PRD + feedback if none was set).
     Use for anything about THIS product, its users, or the
     proposed feature. Returns up to 3 relevant chunks."""
-    hits = _build_retriever().invoke(query)
+    retriever = _retriever_ctx.get() or _get_default_retriever()
+    if retriever is None:
+        return []
+    hits = retriever.invoke(query)
     return [
         Evidence(
             source=h.metadata.get("source", "internal"),

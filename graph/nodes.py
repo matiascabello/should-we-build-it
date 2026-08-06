@@ -1,6 +1,7 @@
 import json
 from openai import OpenAI
 from langsmith.wrappers import wrap_openai
+from langgraph.config import get_stream_writer
 from graph.state import DebateState, Turn, ToolCall
 from graph.tools import TOOL_SCHEMAS, TOOL_DISPATCH
 from graph.state import Flag, DecisionMemo
@@ -51,6 +52,11 @@ def _run_debater(state: DebateState, role: str, system_prompt: str) -> dict:
 
     collected_tool_calls: list[ToolCall] = []
     tool_calls_made = 0
+    # Pushes each tool call to the UI the moment it happens, via LangGraph's
+    # custom stream channel (stream_mode="custom") — separate from the Turn
+    # this function returns at the end, which server/app.py still emits as
+    # the "turn" SSE event once the argument is ready.
+    stream_writer = get_stream_writer()
 
     while True:
         # Only offer tools while under the cap; once capped, force a final answer.
@@ -81,12 +87,23 @@ def _run_debater(state: DebateState, role: str, system_prompt: str) -> dict:
             evidence = TOOL_DISPATCH[fn_name](query)
             tool_calls_made += 1
 
-            # Record for the transcript (what the UI will show).
+            # Record for the transcript (what the UI will show), and push
+            # each one live as it's retrieved (before the argument exists).
             for ev in evidence:
-                collected_tool_calls.append(ToolCall(
+                tc_obj = ToolCall(
                     tool=fn_name, query=query,
-                    source=ev.source, snippet=ev.content[:200],
-                ))
+                    source=ev.source, snippet=ev.content[:500],
+                )
+                collected_tool_calls.append(tc_obj)
+                stream_writer({
+                    "type": "tool_call",
+                    "role": role,
+                    "round": state["round"],
+                    "tool": tc_obj.tool,
+                    "query": tc_obj.query,
+                    "source": tc_obj.source,
+                    "snippet": tc_obj.snippet,
+                })
 
             # Feed the result back to the model.
             result_text = "\n\n".join(

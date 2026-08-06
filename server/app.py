@@ -3,14 +3,33 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
 from graph.build import build_debate_graph
+from graph.tools import (
+    build_retriever_from_docs, set_active_retriever, clear_active_retriever,
+)
 
 app = FastAPI()
 graph = build_debate_graph()
+
+# Serves saved debate runs (SSE event sequences) for the UI's zero-API-cost
+# "replay" path — see ui/index.html's replayExample().
+app.mount("/examples", StaticFiles(directory="examples"), name="examples")
+
+
+class ContextDoc(BaseModel):
+    title: str = ""
+    content: str
+
+
+class DebateRequest(BaseModel):
+    question: str
+    max_rounds: int = 3
+    context: list[ContextDoc] = Field(default_factory=list)
 
 
 def _serialize_update(node_name: str, state_update: dict) -> dict:
@@ -26,7 +45,7 @@ def _serialize_update(node_name: str, state_update: dict) -> dict:
         event["round"] = turn.round
         event["argument"] = turn.argument
         event["tool_calls"] = [
-            {"tool": tc.tool, "query": tc.query, "source": tc.source}
+            {"tool": tc.tool, "query": tc.query, "source": tc.source, "snippet": tc.snippet}
             for tc in turn.tool_calls
         ]
 
@@ -56,8 +75,18 @@ def _serialize_update(node_name: str, state_update: dict) -> dict:
     return event
 
 
-async def debate_stream(question: str, max_rounds: int):
-    """Run the graph and yield SSE events, one per node completion."""
+async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc]):
+    """Run the graph and yield SSE events, one per node completion.
+
+    Builds a retriever from THIS request's context docs (falling back to
+    the default PRD + feedback inside graph/tools.py if none supplied) and
+    makes it the active retriever for the duration of the run, so the
+    debaters' search_internal_context calls search this run's context —
+    isolated from any other concurrent request.
+    """
+    retriever = build_retriever_from_docs([(d.title, d.content) for d in context])
+    token = set_active_retriever(retriever)
+
     initial = {
         "question": question,
         "max_rounds": max_rounds,
@@ -67,20 +96,31 @@ async def debate_stream(question: str, max_rounds: int):
         "verdict": None,
     }
 
-    # stream_mode="updates" yields {node_name: state_delta} per node finish
-    for chunk in graph.stream(initial, stream_mode="updates"):
-        for node_name, state_update in chunk.items():
-            event = _serialize_update(node_name, state_update)
-            yield f"data: {json.dumps(event)}\n\n"
-            await asyncio.sleep(0.4)  # small pause so the UI feels "live"
+    try:
+        # "updates" yields {node_name: state_delta} per node finish (turn/flags/
+        # verdict/round, as before); "custom" yields each tool call the moment
+        # the debater makes it — see graph/nodes.py's stream_writer calls.
+        for mode, chunk in graph.stream(initial, stream_mode=["updates", "custom"]):
+            if mode == "custom":
+                yield f"data: {json.dumps(chunk)}\n\n"
+                await asyncio.sleep(0.25)  # tool calls arrive in a burst; keep it snappy
+                continue
+            for node_name, state_update in chunk.items():
+                event = _serialize_update(node_name, state_update)
+                yield f"data: {json.dumps(event)}\n\n"
+                await asyncio.sleep(0.4)  # small pause so the UI feels "live"
 
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    finally:
+        clear_active_retriever(token)
+        if retriever is not None:
+            retriever.vectorstore.delete_collection()
 
 
-@app.get("/api/debate")
-async def debate(question: str, max_rounds: int = 3):
+@app.post("/api/debate")
+async def debate(req: DebateRequest):
     return StreamingResponse(
-        debate_stream(question, max_rounds),
+        debate_stream(req.question, req.max_rounds, req.context),
         media_type="text/event-stream",
     )
 
