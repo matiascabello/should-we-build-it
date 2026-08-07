@@ -112,9 +112,10 @@ def search_internal_context(query: str) -> list[Evidence]:
 
 @traceable(run_type="tool")
 def web_search(query: str, k: int = 3) -> list[Evidence]:
-    """Search the web (Google via Serper) for market data,
-    competitors, or external evidence NOT in the internal docs.
-    Returns up to k results as {title, snippet, url}."""
+    """Search the web (Google via Serper) for evidence outside this
+    product's own docs: competitor/industry precedent, adoption
+    benchmarks, market sizing. Returns up to k results as
+    {title, snippet, url}."""
     resp = requests.post(
         "https://google.serper.dev/search",
         headers={
@@ -165,8 +166,13 @@ TOOL_SCHEMAS = [
         "type": "function",
         "name": "web_search",
         "description": (
-            "Search the web (Google) for market data, competitors, industry "
-            "trends, or external evidence NOT found in the internal docs."
+            "Search the web (Google) for evidence the internal docs can't "
+            "provide because it lives outside this product: how competitors "
+            "or similar products handle this, industry adoption/success "
+            "benchmarks for comparable features, published failure or "
+            "backlash stories, market sizing. Use this to test whether an "
+            "internal assumption holds up against outside evidence, not "
+            "just when internal search comes up empty."
         ),
         "parameters": {
             "type": "object",
