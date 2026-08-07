@@ -257,10 +257,15 @@
   <div class="modal-panel relative bg-paper border border-line rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
     <button id="evidence-modal-close" type="button" aria-label="Close"
       class="absolute top-4 right-4 text-inkSoft hover:text-ink transition-colors text-lg leading-none">✕</button>
-    <div id="evidence-modal-tool" class="font-mono text-[11px] uppercase tracking-[0.15em] mb-3"></div>
-    <div id="evidence-modal-query" class="font-display text-lg text-ink mb-4 pr-6"></div>
-    <div id="evidence-modal-source" class="font-mono text-[11px] text-inkSoft mb-4 pb-4 border-b border-line"></div>
-    <div id="evidence-modal-content" class="font-body text-sm leading-relaxed text-ink whitespace-pre-wrap"></div>
+    <!-- Hierarchy, deliberately: the query is how the evidence was found
+         (secondary, small); the source is what it's from (the real
+         headline, and the link target when one exists); the content is
+         the evidence itself — the actual reason this modal exists — so it
+         carries the most visual weight, styled as the quotation it is. -->
+    <div id="evidence-modal-tool" class="font-mono text-[11px] uppercase tracking-[0.15em] mb-2"></div>
+    <div id="evidence-modal-query" class="font-mono text-[11px] text-inkSoft italic mb-3 pr-6"></div>
+    <div id="evidence-modal-source" class="mb-4 pb-4 border-b border-line"></div>
+    <div id="evidence-modal-content" class="whitespace-pre-wrap"></div>
   </div>
 </div>
 
@@ -529,15 +534,59 @@ const state = {
 };
 
 // ---------------------------------------------------------------
+// Snippet formatting — internal-doc snippets are raw chunks off a
+// RecursiveCharacterTextSplitter (500 chars, 50 overlap) with no marker
+// when they land mid-sentence; web snippets already arrive pre-truncated
+// with "…" from Serper/Google, which is why only internal ones read as
+// "broken" rather than "obviously a preview". Detect an unmarked cut at
+// either end and add the marker web snippets already have, instead of
+// changing how anything gets chunked.
+// ---------------------------------------------------------------
+const SNIPPET_START_OK = /^[\s]*(["“'(\[#>*\-.…]|[A-Z0-9])/;
+const SNIPPET_END_OK = /[.!?:…][)"'”]?\s*$/;
+
+function formatSnippet(text) {
+  if (!text) return text;
+  let out = text.trim();
+  if (out && !SNIPPET_START_OK.test(out)) out = '… ' + out;
+  if (out && !SNIPPET_END_OK.test(out)) out = out + ' …';
+  return out;
+}
+
+// ---------------------------------------------------------------
 // Evidence detail modal — "view details" on any evidence row
 // ---------------------------------------------------------------
 function openEvidenceModal(tc) {
   const isWeb = tc.tool === 'web_search';
+  const accent = isWeb ? 'text-slateBlue' : 'text-teal';
+
   evidenceModalTool.textContent = isWeb ? '🌐 Web Search' : '📄 Internal Context';
-  evidenceModalTool.className = `font-mono text-[11px] uppercase tracking-[0.15em] mb-3 ${isWeb ? 'text-slateBlue' : 'text-teal'}`;
-  evidenceModalQuery.textContent = `"${tc.query}"`;
-  evidenceModalSource.textContent = `Source: ${tc.source}`;
-  evidenceModalContent.textContent = tc.snippet || '(no content captured for this evidence)';
+  evidenceModalTool.className = `font-mono text-[11px] uppercase tracking-[0.15em] mb-2 ${accent}`;
+
+  evidenceModalQuery.textContent = `Searched: "${tc.query}"`;
+
+  // Source is the real headline here — for a web result it's the page's
+  // own title, and it's the natural place to put the link (like clicking
+  // an article preview's title, not a bare "source:" label).
+  evidenceModalSource.innerHTML = '';
+  if (tc.url) {
+    evidenceModalSource.appendChild(h('a', {
+      class: `block font-display text-lg leading-snug hover:underline ${accent}`,
+      text: `${tc.source} ↗`,
+      attrs: { href: tc.url, target: '_blank', rel: 'noopener noreferrer' },
+    }));
+  } else {
+    evidenceModalSource.appendChild(h('span', {
+      class: 'block font-display text-lg leading-snug text-ink', text: tc.source,
+    }));
+  }
+
+  // The evidence itself is the actual reason this modal exists — give it
+  // the primary visual weight, with a quote treatment since (once
+  // formatted above) it reads as the verbatim excerpt it is.
+  evidenceModalContent.className = `font-body text-[15px] leading-relaxed text-ink whitespace-pre-wrap border-l-2 pl-4 ${isWeb ? 'border-slateBlue/40' : 'border-teal/40'}`;
+  evidenceModalContent.textContent = formatSnippet(tc.snippet) || '(no content captured for this evidence)';
+
   evidenceModal.classList.remove('hidden');
 }
 
@@ -903,7 +952,17 @@ function buildEvidenceRow(tc) {
     detailsBtn.addEventListener('click', () => openEvidenceModal(tc));
     topLine.appendChild(detailsBtn);
   }
-  const source = h('div', { class: `font-mono text-[11px] mt-0.5 truncate ${isWeb ? 'text-slateBlue' : 'text-teal'}`, text: tc.source });
+  const sourceColor = isWeb ? 'text-slateBlue' : 'text-teal';
+  // A real link straight to the source when we have one (web results),
+  // not just inside the modal — the modal is for reading the evidence,
+  // this is for jumping straight to where it came from.
+  const source = tc.url
+    ? h('a', {
+        class: `block font-mono text-[11px] mt-0.5 truncate ${sourceColor} hover:underline`,
+        text: `${tc.source} ↗`,
+        attrs: { href: tc.url, target: '_blank', rel: 'noopener noreferrer' },
+      })
+    : h('div', { class: `font-mono text-[11px] mt-0.5 truncate ${sourceColor}`, text: tc.source });
   meta.append(topLine, source);
   row.append(icon, meta);
   return row;
