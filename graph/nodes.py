@@ -10,7 +10,13 @@ from pydantic import BaseModel
 
 client = wrap_openai(OpenAI())
 MODEL = "gpt-5.6-luna"
-MAX_TOOL_CALLS = 2   # guardrail: cap evidence-gathering per turn
+MAX_TOOL_CALLS = 3   # guardrail: cap evidence-gathering per turn
+# Was 2. With 2, using web_search meant giving up an internal-doc call —
+# for an internal-product question, internal search always wins that
+# tradeoff, which is why web_search went unused across every trace tested
+# (gpt-4o and every gpt-5.6-luna reasoning tier). 3 lets a debater pull
+# internal grounding *and* external evidence in the same turn instead of
+# choosing between them.
 
 # Chat Completions rejects function tools + reasoning_effort together for
 # this model ("use /v1/responses or set reasoning_effort to 'none'"), so
@@ -25,43 +31,85 @@ REASONING_EFFORT = "medium"
 
 ADVOCATE_SYSTEM = """You are the Advocate in a product decision debate.
 Your job: argue the strongest evidence-based case FOR building the feature.
-Use the tools to gather real evidence — internal user feedback, the PRD, or
-web/market data — before you argue. Ground every claim in something you
-retrieved. Be persuasive but honest; do not invent facts. Keep your argument
-to 3-5 sentences. Respond to the opponent's prior points when relevant. If you have argued in prior rounds, do NOT repeat your earlier points. Advance the debate: directly rebut your opponent's most recent argument, or introduce evidence you haven't used yet."""
+Use BOTH your tools, not just one: internal search for what users and the
+PRD actually say about this product, and web search for outside evidence —
+how comparable features performed at other companies, adoption or success
+benchmarks for similar launches, market sizing — that corroborates the
+internal signal instead of resting on internal anecdotes alone. Reach for
+web search whenever an internal claim would be more convincing backed by an
+external data point, not only when internal search comes up empty. Ground
+every claim in something you retrieved. Be persuasive but honest; do not
+invent facts. Keep your argument to 3-5 sentences. Respond to the opponent's
+prior points when relevant. If you have argued in prior rounds, do NOT repeat your earlier points. Advance the debate: directly rebut your opponent's most recent argument, or introduce evidence you haven't used yet."""
 
 SKEPTIC_SYSTEM = """You are the Skeptic in a product decision debate.
 Your job: argue the strongest evidence-based case AGAINST building the feature
-(or for descoping/delaying it). Use the tools to gather real evidence —
-internal user feedback, the PRD, costs, or web/market data — before you argue.
+(or for descoping/delaying it). Use BOTH your tools, not just one: internal
+search for the PRD's own stated risks and costs, and web search for outside
+evidence — published failure or backlash stories for comparable AI features,
+real-world error/complaint rates, how competitors handled the same tradeoff —
+that tests whether an internal assumption actually holds up. Reach for web
+search whenever it could surface a risk or precedent the internal docs
+wouldn't know to mention, not only when internal search comes up empty.
 Ground every claim in something you retrieved. Be rigorous but honest; do not
 invent facts. Keep your argument to 3-5 sentences. Respond to the opponent's
 prior points when relevant. If you have argued in prior rounds, do NOT repeat your earlier points. Advance the debate: directly rebut your opponent's most recent argument, or introduce evidence you haven't used yet."""
 
 
 # Occasionally the model emits an unexecuted tool-call attempt as raw text
-# (e.g. 'to=functions.search_internal_context code{"query":"..."}') instead
-# of a structured function_call item — it lands in output_text glued onto
-# the front of the real argument rather than being caught by our
-# function_call handling. Rare (observed intermittently, not tied to one
-# input), but since it ships straight to the transcript/UI verbatim, treat
-# it as a bad generation: retry once, and if it recurs, strip it so garbled
-# tool syntax can never reach a user regardless of what the model does.
-_LEAKED_TOOL_CALL_RE = re.compile(r'\A\s*to=functions\.\w+.*?\}\s*', re.DOTALL)
+# instead of a structured function_call item — it lands in output_text
+# glued onto the front of the real argument rather than being caught by our
+# function_call handling. This has shown up in at least four distinct
+# literal shapes across testing ('to=functions.X code{...}', 'to=web.run
+# code{...}', a bare 'THOOK}' debris fragment, a '{"q":...}],"..."'
+# array-style fragment) — different pseudo tool names, different argument
+# keys, different wrapping. Enumerating each new shape as its own regex
+# lost that game twice in a row, so detection is generalized instead: a
+# debate argument is plain English prose and never legitimately contains a
+# literal '{' or '}' — every leaked variant seen so far did, near the start
+# of the text. That single signal is far more robust than matching specific
+# prefixes. Since it ships straight to the transcript/UI verbatim if
+# unhandled: retry once, and if it recurs, cut through the leaked syntax so
+# garbled text can never reach a user regardless of what shape it takes.
+_LEAK_SCAN_WINDOW = 200   # only look at the head — a legitimate argument
+                          # quoting a brace deep in its text shouldn't count
 MAX_LEAK_RETRIES = 1
 
 
 def _looks_like_leaked_tool_call(text: str) -> bool:
-    return bool(_LEAKED_TOOL_CALL_RE.match(text))
+    head = text[:_LEAK_SCAN_WINDOW]
+    return "{" in head or "}" in head
 
 
 def _strip_leaked_tool_call_syntax(text: str) -> str:
-    cleaned = text
-    while True:
-        stripped = _LEAKED_TOOL_CALL_RE.sub("", cleaned, count=1)
-        if stripped == cleaned:
-            return cleaned.strip()
-        cleaned = stripped
+    """Cut everything through the last brace in the leaked region, then
+    trim any leftover leading debris (stray punctuation/tokens) that isn't
+    the start of a real sentence."""
+    head = text[:_LEAK_SCAN_WINDOW]
+    cut = max(head.rfind("{"), head.rfind("}"))
+    remainder = text[cut + 1:] if cut != -1 else text
+    # Drop any leading run of characters that isn't a letter or an opening
+    # quote — covers stray commas/brackets/control-token fragments left
+    # over from the cut without being able to name every shape up front.
+    remainder = re.sub(r'\A[^A-Za-z"“]+', '', remainder)
+    return remainder.strip()
+
+
+def _final_answer_text(response) -> str:
+    """response.output_text concatenates every message-type output item's
+    text with no separator — including 'commentary'-phase messages (the
+    model narrating its own search/reasoning process out loud), gluing that
+    narration onto the front of the real argument with no space between
+    them. Pull text only from 'final_answer'-phase content; an absent phase
+    is treated as final since not every model sets it."""
+    parts = [
+        part.text
+        for item in response.output
+        if item.type == "message" and getattr(item, "phase", None) != "commentary"
+        for part in item.content
+        if getattr(part, "type", None) == "output_text"
+    ]
+    return "\n\n".join(parts).strip()
 
 
 def _render_transcript(transcript: list[Turn]) -> str:
@@ -119,7 +167,7 @@ def _run_debater(state: DebateState, role: str, system_prompt: str) -> dict:
 
         # No tool calls requested -> this is the final argument.
         if not function_calls:
-            argument = response.output_text.strip()
+            argument = _final_answer_text(response)
             if _looks_like_leaked_tool_call(argument):
                 if leak_retries_used < MAX_LEAK_RETRIES:
                     leak_retries_used += 1
