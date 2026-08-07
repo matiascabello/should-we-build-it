@@ -45,7 +45,8 @@ def _serialize_update(node_name: str, state_update: dict) -> dict:
         event["round"] = turn.round
         event["argument"] = turn.argument
         event["tool_calls"] = [
-            {"tool": tc.tool, "query": tc.query, "source": tc.source, "snippet": tc.snippet}
+            {"tool": tc.tool, "query": tc.query, "source": tc.source,
+             "snippet": tc.snippet, "url": tc.url}
             for tc in turn.tool_calls
         ]
 
