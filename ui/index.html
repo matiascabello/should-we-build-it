@@ -1190,7 +1190,21 @@ async function startDebate(question, maxRounds, context) {
       body: JSON.stringify({ question, max_rounds: maxRounds, context }),
     });
     if (!res.ok || !res.body) {
-      throw new Error(`Request failed (${res.status})`);
+      // Rate-limit rejections (429) come back as {"detail": "<friendly message>"}
+      // from FastAPI's HTTPException — a complete, self-explanatory sentence
+      // ("Rate limit reached...") that shouldn't be wrapped in "Something went
+      // wrong" (that framing is for actual failures, not the app working as
+      // designed). The bare status-code fallback isn't self-explanatory the
+      // same way, so it keeps that framing — see the catch block below.
+      let message = `Request failed (${res.status})`;
+      let friendly = false;
+      try {
+        const body = await res.json();
+        if (body && body.detail) { message = body.detail; friendly = true; }
+      } catch { /* not JSON — keep the generic message */ }
+      const err = new Error(message);
+      err.friendly = friendly;
+      throw err;
     }
 
     const reader = res.body.getReader();
@@ -1219,7 +1233,7 @@ async function startDebate(question, maxRounds, context) {
     }
   } catch (err) {
     console.error(err);
-    showError(`Something went wrong: ${err.message}`);
+    showError(err.friendly ? err.message : `Something went wrong: ${err.message}`);
   } finally {
     hideThinking(); // don't leave it spinning if the stream ended early/errored
     state.running = false;
