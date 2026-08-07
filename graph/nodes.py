@@ -194,7 +194,7 @@ def _run_debater(state: DebateState, role: str, system_prompt: str) -> dict:
             for ev in evidence:
                 tc_obj = ToolCall(
                     tool=fn_name, query=query,
-                    source=ev.source, snippet=ev.content[:500],
+                    source=ev.source, snippet=ev.content[:500], url=ev.url,
                 )
                 collected_tool_calls.append(tc_obj)
                 stream_writer({
@@ -205,6 +205,7 @@ def _run_debater(state: DebateState, role: str, system_prompt: str) -> dict:
                     "query": tc_obj.query,
                     "source": tc_obj.source,
                     "snippet": tc_obj.snippet,
+                    "url": tc_obj.url,
                 })
 
             # Feed the result back to the model.

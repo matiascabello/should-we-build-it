@@ -12,6 +12,7 @@ class ToolCall(BaseModel):
     query: str
     source: str          # where the result came from (doc name / URL / title)
     snippet: str         # the retrieved content, trimmed
+    url: str = ""        # populated for web results (from Evidence.url), empty for internal
 
 
 class Turn(BaseModel):
