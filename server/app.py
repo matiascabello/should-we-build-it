@@ -1,6 +1,8 @@
 import json
 import asyncio
-from fastapi import FastAPI
+import time
+from collections import defaultdict
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -19,6 +21,77 @@ graph = build_debate_graph()
 # Serves saved debate runs (SSE event sequences) for the UI's zero-API-cost
 # "replay" path — see ui/index.html's replayExample().
 app.mount("/examples", StaticFiles(directory="examples"), name="examples")
+
+# ---------------------------------------------------------------
+# Rate limiting — a real debate isn't a cheap request: 3 rounds means
+# multiple sequential LLM calls per debater (graph/nodes.py's REASONING_EFFORT
+# and MAX_TOOL_CALLS), plus up to 2 web searches per turn now that debaters
+# reach for external evidence by default. An unauthenticated public endpoint
+# with no limits is a real cost/abuse exposure, not a hypothetical one.
+#
+# In-memory and single-process by design: fine for a low-traffic portfolio
+# deployment on one instance, but counters reset on restart and don't share
+# state across multiple workers/instances — if this ever needs real scale,
+# swap these for a shared store (Redis, etc.) rather than trusting this.
+#
+# All three limits below are starting points, not calibrated to any actual
+# budget — tune them to what you're actually willing to spend.
+# ---------------------------------------------------------------
+MAX_CONCURRENT_DEBATES = 2          # in-flight at once, across all visitors
+MAX_DEBATES_PER_IP_PER_HOUR = 3     # per visitor
+MAX_DEBATES_PER_DAY = 50            # hard ceiling for the whole deployment
+
+HOUR_SECONDS = 3600
+DAY_SECONDS = 86400
+
+_active_debates = 0
+_ip_request_times: dict[str, list[float]] = defaultdict(list)
+_daily_debate_times: list[float] = []
+
+
+def _client_ip(request: Request) -> str:
+    """Most PaaS deployments (Render, Fly, Railway, etc.) terminate TLS at a
+    proxy in front of the app — request.client.host would then be the
+    proxy's address for every visitor, collapsing everyone into one
+    rate-limit bucket. Prefer X-Forwarded-For's first entry (the original
+    client, on platforms that set it correctly) and fall back for local dev."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _reserve_debate_slot(ip: str) -> str | None:
+    """Checks all three limits and, only if none are exceeded, atomically
+    reserves a slot (increments the counters) — synchronous with no
+    `await` inside, so nothing else can interleave between the check and
+    the increment on the single event loop. Returns an error message to
+    reject with, or None if the request may proceed."""
+    global _active_debates
+    now = time.time()
+
+    if _active_debates >= MAX_CONCURRENT_DEBATES:
+        return "Too many debates running right now — please try again in a minute."
+
+    ip_times = [t for t in _ip_request_times[ip] if now - t < HOUR_SECONDS]
+    if len(ip_times) >= MAX_DEBATES_PER_IP_PER_HOUR:
+        return f"Rate limit reached ({MAX_DEBATES_PER_IP_PER_HOUR}/hour per visitor) — please try again later."
+
+    global _daily_debate_times
+    _daily_debate_times = [t for t in _daily_debate_times if now - t < DAY_SECONDS]
+    if len(_daily_debate_times) >= MAX_DEBATES_PER_DAY:
+        return "Daily debate limit reached for this deployment — please check back tomorrow."
+
+    _active_debates += 1
+    ip_times.append(now)
+    _ip_request_times[ip] = ip_times
+    _daily_debate_times.append(now)
+    return None
+
+
+def _release_debate_slot() -> None:
+    global _active_debates
+    _active_debates = max(0, _active_debates - 1)
 
 
 class ContextDoc(BaseModel):
@@ -116,10 +189,20 @@ async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc
         clear_active_retriever(token)
         if retriever is not None:
             retriever.vectorstore.delete_collection()
+        # The slot was reserved by the route handler before this generator
+        # started (see _reserve_debate_slot) — release it here, in this
+        # generator's own finally, since that's the debate's real lifetime:
+        # the whole SSE stream, including an early client disconnect
+        # (StreamingResponse closes the generator via GeneratorExit, which
+        # still runs this finally block).
+        _release_debate_slot()
 
 
 @app.post("/api/debate")
-async def debate(req: DebateRequest):
+async def debate(req: DebateRequest, request: Request):
+    rejection = _reserve_debate_slot(_client_ip(request))
+    if rejection:
+        raise HTTPException(status_code=429, detail=rejection)
     return StreamingResponse(
         debate_stream(req.question, req.max_rounds, req.context),
         media_type="text/event-stream",
