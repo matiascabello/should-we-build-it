@@ -158,7 +158,11 @@ async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc
     debaters' search_internal_context calls search this run's context —
     isolated from any other concurrent request.
     """
-    retriever = build_retriever_from_docs([(d.title, d.content) for d in context])
+    # build_retriever_from_docs does synchronous embedding calls — off the
+    # event loop thread for the same reason graph.astream() is used below.
+    retriever = await asyncio.to_thread(
+        build_retriever_from_docs, [(d.title, d.content) for d in context]
+    )
     token = set_active_retriever(retriever)
 
     initial = {
@@ -171,10 +175,21 @@ async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc
     }
 
     try:
+        # astream(), not stream(): graph/nodes.py's node functions are plain
+        # sync def's making blocking OpenAI/Serper calls. Under the sync
+        # .stream() API those ran in-line on this event loop's own thread,
+        # starving every other request on the process — including Render's
+        # health check, which is what killed the instance mid-debate the
+        # first time this ran in production. Under .astream(), LangGraph
+        # dispatches each sync node to a thread pool automatically (see
+        # langgraph/_internal/_runnable.py's coerce_to_runnable: a plain
+        # callable's async path is `run_in_executor`), so the event loop
+        # stays free for the whole run.
+        #
         # "updates" yields {node_name: state_delta} per node finish (turn/flags/
         # verdict/round, as before); "custom" yields each tool call the moment
         # the debater makes it — see graph/nodes.py's stream_writer calls.
-        for mode, chunk in graph.stream(initial, stream_mode=["updates", "custom"]):
+        async for mode, chunk in graph.astream(initial, stream_mode=["updates", "custom"]):
             if mode == "custom":
                 yield f"data: {json.dumps(chunk)}\n\n"
                 await asyncio.sleep(0.25)  # tool calls arrive in a burst; keep it snappy
