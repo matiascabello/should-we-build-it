@@ -59,6 +59,17 @@
   }
   .pulse-dots { animation: pulseDots 1.6s ease-in-out infinite; }
 
+  /* Staggered per-dot pulse (not one uniform blink) — reads as "actively
+     working" rather than a static label flashing, for the trailing
+     between-stages indicator (fact-checking / next round / judging). */
+  @keyframes thinkingDot {
+    0%, 80%, 100% { opacity: .25; transform: scale(.8); }
+    40%           { opacity: 1;   transform: scale(1); }
+  }
+  .thinking-dot { animation: thinkingDot 1.4s ease-in-out infinite; }
+  .thinking-dot:nth-child(2) { animation-delay: .18s; }
+  .thinking-dot:nth-child(3) { animation-delay: .36s; }
+
   @keyframes badgeIn {
     from { opacity: 0; transform: scale(.94); }
     to   { opacity: 1; transform: scale(1); }
@@ -72,7 +83,7 @@
   .modal-panel { animation: modalIn .18s ease both; }
 
   @media (prefers-reduced-motion: reduce) {
-    .card-in, .evidence-row, .pulse-dots, .animate-stamp, .modal-panel {
+    .card-in, .evidence-row, .pulse-dots, .thinking-dot, .animate-stamp, .modal-panel {
       animation: none !important; opacity: 1 !important; transform: none !important;
     }
   }
@@ -512,7 +523,10 @@ const confirmModalMessage  = document.getElementById('confirm-modal-message');
 const confirmModalCancel   = document.getElementById('confirm-modal-cancel');
 const confirmModalContinue = document.getElementById('confirm-modal-continue');
 
-const state = { running: false, currentRound: 0, roundCells: {}, roundMarkers: {}, progressSteps: {} };
+const state = {
+  running: false, currentRound: 0, maxRounds: 0, turnsThisRound: 0,
+  roundCells: {}, roundMarkers: {}, progressSteps: {}, thinking: null,
+};
 
 // ---------------------------------------------------------------
 // Evidence detail modal — "view details" on any evidence row
@@ -687,11 +701,13 @@ function collectContext() {
 // Debate rendering
 // ---------------------------------------------------------------
 function resetDebateView() {
-  debateGrid.innerHTML = '';
+  debateGrid.innerHTML = ''; // wipes any previous run's thinking-indicator too
   state.roundCells = {};
   state.roundMarkers = {};
   state.progressSteps = {};
   state.currentRound = 0;
+  state.turnsThisRound = 0;
+  state.thinking = buildThinkingIndicator();
   verdictSection.classList.add('hidden');
   errorBanner.classList.add('hidden');
   hideNewActivityToast();
@@ -963,6 +979,42 @@ function addFlags(flags) {
 }
 
 // ---------------------------------------------------------------
+// Thinking indicator — a trailing status line for the gaps the per-card
+// "gathering evidence …" dots don't cover: after both turns land while the
+// fact-checker (a real LLM call) is still working, and again after flags
+// land while the next round — or the judge, on the last round — is still
+// running. Always lives at the bottom of debateGrid: showThinking() moves
+// it there (appendChild on an existing child relocates it) so it trails
+// whatever was rendered last, whether that's a pair of turn-cards or a
+// flags-strip.
+// ---------------------------------------------------------------
+function buildThinkingIndicator() {
+  const label = h('span', { class: 'thinking-label' });
+  const dots = h('span', { class: 'inline-flex items-center gap-1' }, [
+    h('span', { class: 'thinking-dot w-1 h-1 rounded-full bg-inkSoft' }),
+    h('span', { class: 'thinking-dot w-1 h-1 rounded-full bg-inkSoft' }),
+    h('span', { class: 'thinking-dot w-1 h-1 rounded-full bg-inkSoft' }),
+  ]);
+  const row = h('div', {
+    class: 'thinking-indicator hidden col-span-full flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft py-4',
+  }, [label, dots]);
+  return { row, label };
+}
+
+function showThinking(label) {
+  if (!state.thinking) return;
+  state.thinking.label.textContent = label;
+  debateGrid.appendChild(state.thinking.row); // (re)append = move to the end
+  state.thinking.row.classList.remove('hidden');
+  noteNewActivity();
+}
+
+function hideThinking() {
+  if (!state.thinking) return;
+  state.thinking.row.classList.add('hidden');
+}
+
+// ---------------------------------------------------------------
 // Verdict rendering
 // ---------------------------------------------------------------
 const REC_LABEL = { build: 'Build', dont_build: "Don't Build", build_descoped: 'Build, But Descope' };
@@ -1010,23 +1062,36 @@ function handleEvent(evt) {
   switch (evt.type) {
     case 'round':
       state.currentRound = evt.round;
+      state.turnsThisRound = 0;
       addRoundRow(evt.round);
       markProgress(evt.round, false);
+      hideThinking(); // the per-card "gathering evidence …" dots take over now
       break;
     case 'tool_call':
       addToolCall(evt);
       break;
     case 'turn':
       finalizeTurn(evt);
+      state.turnsThisRound++;
+      // Both debaters have spoken — the fact-checker (a real LLM call) is
+      // next, with nothing else visible until its 'flags' event arrives.
+      if (state.turnsThisRound >= 2) showThinking(`Fact-checking round ${state.currentRound}`);
       break;
     case 'flags':
       addFlags(evt.flags || []);
+      showThinking(
+        state.currentRound < state.maxRounds
+          ? `Preparing round ${state.currentRound + 1}`
+          : 'The judge is deliberating'
+      );
       break;
     case 'verdict':
+      hideThinking();
       showVerdict(evt.verdict);
       markProgress(state.currentRound, true);
       break;
     case 'done':
+      hideThinking();
       break;
   }
 }
@@ -1050,9 +1115,11 @@ function setBusy(loading, replaying = false) {
 
 async function startDebate(question, maxRounds, context) {
   resetDebateView();
+  state.maxRounds = maxRounds;
   buildProgressBar(maxRounds);
   debateSection.classList.remove('hidden');
   debateSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showThinking('Preparing the debate');
 
   state.running = true;
   setBusy(true);
@@ -1095,6 +1162,7 @@ async function startDebate(question, maxRounds, context) {
     console.error(err);
     showError(`Something went wrong: ${err.message}`);
   } finally {
+    hideThinking(); // don't leave it spinning if the stream ended early/errored
     state.running = false;
     setBusy(false);
   }
@@ -1108,6 +1176,7 @@ async function replayExample() {
   resetDebateView();
   debateSection.classList.remove('hidden');
   debateSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showThinking('Preparing the debate');
 
   state.running = true;
   setBusy(true, true);
@@ -1118,7 +1187,8 @@ async function replayExample() {
     const events = await res.json();
 
     const roundNumbers = events.filter(e => e.type === 'round').map(e => e.round);
-    buildProgressBar(roundNumbers.length ? Math.max(...roundNumbers) : 1);
+    state.maxRounds = roundNumbers.length ? Math.max(...roundNumbers) : 1;
+    buildProgressBar(state.maxRounds);
 
     for (const evt of events) {
       handleEvent(evt);
@@ -1128,6 +1198,7 @@ async function replayExample() {
     console.error(err);
     showError(`Couldn't load the saved example: ${err.message}`);
   } finally {
+    hideThinking();
     state.running = false;
     setBusy(false);
   }
