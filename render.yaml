@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: should-we-build-it
+    runtime: python
+    buildCommand: pip install uv && uv sync --frozen
+    startCommand: uv run uvicorn server.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      # Required — set real values in the Render dashboard when this
+      # Blueprint is first applied; sync:false means "prompt for it,
+      # never store it in this file."
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SERPER_API_KEY
+        sync: false
+      # Optional tracing — off by default so a fresh deploy never tries to
+      # trace without a key set. Flip LANGSMITH_TRACING to "true" and set
+      # LANGSMITH_API_KEY in the dashboard if you want it.
+      - key: LANGSMITH_TRACING
+        value: "false"
+      - key: LANGSMITH_ENDPOINT
+        value: https://api.smith.langchain.com
+      - key: LANGSMITH_API_KEY
+        sync: false
+      - key: LANGSMITH_PROJECT
+        value: should-we-build-it
