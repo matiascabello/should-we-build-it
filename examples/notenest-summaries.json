@@ -9,52 +9,160 @@
     "role": "advocate",
     "round": 1,
     "tool": "search_internal_context",
-    "query": "user feedback on AI-generated summaries feature",
+    "query": "PRD and user feedback for AI-generated summaries in note-taking app: user problems, demand, target users, scope, success metrics, risks, costs",
     "source": "feedback.md",
-    "snippet": "# User Feedback: Summaries / Long-Note Review\n\nCollected from support tickets, in-app feedback, and user interviews.\nSentiment is mixed on purpose \u2014 this is raw, not curated.\n\n## Wants it"
+    "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+    "url": ""
   },
   {
     "type": "tool_call",
     "role": "advocate",
     "round": 1,
     "tool": "search_internal_context",
-    "query": "user feedback on AI-generated summaries feature",
-    "source": "feedback.md",
-    "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" \u2014 P2, interview\n- \"Please add summaries. I have "
-  },
-  {
-    "type": "tool_call",
-    "role": "advocate",
-    "round": 1,
-    "tool": "search_internal_context",
-    "query": "user feedback on AI-generated summaries feature",
+    "query": "PRD and user feedback for AI-generated summaries in note-taking app: user problems, demand, target users, scope, success metrics, risks, costs",
     "source": "prd.md",
-    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern \u2014 a fabricated \"TODO\" is"
+    "snippet": "# PRD: AI-Generated Summaries for NoteNest\n\n**Status:** Proposal / Pre-decision\n**Author:** Product team\n**Last updated:** 2026-08-01\n\n## Problem",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 1,
+    "tool": "search_internal_context",
+    "query": "PRD and user feedback for AI-generated summaries in note-taking app: user problems, demand, target users, scope, success metrics, risks, costs",
+    "source": "prd.md",
+    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 1,
+    "tool": "web_search",
+    "query": "AI meeting notes summaries adoption user productivity benchmark Otter Fireflies research 2024 2025",
+    "source": "AI Meeting Assistant Features Compared (2024): Otter.ai ...",
+    "snippet": "Detailed comparison of AI meeting assistants: Otter.ai, Fireflies.ai, and others. Analyze features, pricing & determine which AI is best for your needs.",
+    "url": "https://deepusecase.com/blog/ai-meeting-assistant-features-compared/"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 1,
+    "tool": "web_search",
+    "query": "AI meeting notes summaries adoption user productivity benchmark Otter Fireflies research 2024 2025",
+    "source": "Fireflies vs Otter: Side-by-Side Comparison - read.ai",
+    "snippet": "Both Fireflies and Otter are AI meeting assistants that join your calls, transcribe meetings in real time, and generate AI meeting summaries. The key differences only become clear once you compare how each AI meeting tool handles meeting transcripts, workflow automation, and team collaboration.",
+    "url": "https://www.read.ai/articles/fireflies-vs-otter-side-by-side-comparison"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 1,
+    "tool": "web_search",
+    "query": "AI meeting notes summaries adoption user productivity benchmark Otter Fireflies research 2024 2025",
+    "source": "AI Meeting Assistant Comparison 2024: Otter.ai vs. Fireflies ...",
+    "snippet": "This article dives deep into a feature-by- feature comparison of three leading AI meeting assistants: Otter.ai, Fireflies.ai, and Fellow.app. We’ll analyze their strengths, weaknesses, pricing, and ideal use cases.",
+    "url": "https://deepusecase.com/blog/ai-meeting-assistant-comparison-otter-fireflies-fellow/"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 1,
+    "tool": "web_search",
+    "query": "Microsoft research generative AI meeting summaries users productivity study 2024 Copilot meeting recap adoption",
+    "source": "What Can Copilot's Earliest Users Teach Us About AI at ...",
+    "snippet": "70% of Copilot users said they were more productive, and 68% said it improved the quality of their work. Overall, users were 29% faster in a ...",
+    "url": "https://www.microsoft.com/en-us/worklab/work-trend-index/copilots-earliest-users-teach-us-about-generative-ai-at-work"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 1,
+    "tool": "web_search",
+    "query": "Microsoft research generative AI meeting summaries users productivity study 2024 Copilot meeting recap adoption",
+    "source": "Intelligent recap for Teams calls, meetings, and events",
+    "snippet": "Intelligent meeting recap uses AI to help your users focus on the meeting discussion instead of taking notes. This feature allows them to find ...",
+    "url": "https://learn.microsoft.com/en-us/microsoftteams/intelligent-recap-calls-meetings"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 1,
+    "tool": "web_search",
+    "query": "Microsoft research generative AI meeting summaries users productivity study 2024 Copilot meeting recap adoption",
+    "source": "Microsoft Teams meeting summaries with AI: A new feature ...",
+    "snippet": "A new feature to allow you to create custom AI summaries of Microsoft Teams meetings is coming for Microsoft 365 Copilot licensed users.",
+    "url": "https://www.linkedin.com/posts/nickdc_a-new-feature-to-allow-you-to-create-custom-activity-7368243992263626753-dvqY"
   },
   {
     "node": "advocate",
     "type": "turn",
     "role": "advocate",
     "round": 1,
-    "argument": "Adding AI-generated summaries to our note-taking app is a feature worth pursuing based on substantial user demand and potential value. User feedback highlights a clear desire for this feature, as many users express frustration with handling large volumes of notes. They indicate that summaries would significantly enhance their note review process, making it faster and more efficient. For instance, a user mentioned the substantial benefit of having a \"TL;DR\" for research workflows. Additionally, students and users managing extensive notes for meetings are likely to derive particular value, potentially increasing user satisfaction and willingness to pay. Addressing potential challenges, such as accuracy in summarizing unstructured notes, will be crucial, but the demand suggests significant potential benefits.",
+    "argument": "We should build AI-generated summaries: internal research shows a clear, repeated need—users with large meeting, research, and lecture notes explicitly want TL;DRs and actionable takeaways, with one saying they would pay more for it. This is reinforced by Microsoft’s early Copilot study, where 70% of users reported increased productivity, 68% improved work quality, and users completed tasks 29% faster, indicating real value from AI assistance rather than mere novelty. We should mitigate the PRD’s legitimate hallucination and trust risks by launching summaries—not autonomous action items—with citations to source passages, prominent editing, and a limited beta focused on long notes; adoption, correction rate, and repeat usage can validate expansion.",
     "tool_calls": [
       {
         "tool": "search_internal_context",
-        "query": "user feedback on AI-generated summaries feature",
+        "query": "PRD and user feedback for AI-generated summaries in note-taking app: user problems, demand, target users, scope, success metrics, risks, costs",
         "source": "feedback.md",
-        "snippet": "# User Feedback: Summaries / Long-Note Review\n\nCollected from support tickets, in-app feedback, and user interviews.\nSentiment is mixed on purpose \u2014 this is raw, not curated.\n\n## Wants it"
+        "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+        "url": ""
       },
       {
         "tool": "search_internal_context",
-        "query": "user feedback on AI-generated summaries feature",
-        "source": "feedback.md",
-        "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" \u2014 P2, interview\n- \"Please add summaries. I have "
-      },
-      {
-        "tool": "search_internal_context",
-        "query": "user feedback on AI-generated summaries feature",
+        "query": "PRD and user feedback for AI-generated summaries in note-taking app: user problems, demand, target users, scope, success metrics, risks, costs",
         "source": "prd.md",
-        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern \u2014 a fabricated \"TODO\" is"
+        "snippet": "# PRD: AI-Generated Summaries for NoteNest\n\n**Status:** Proposal / Pre-decision\n**Author:** Product team\n**Last updated:** 2026-08-01\n\n## Problem",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "PRD and user feedback for AI-generated summaries in note-taking app: user problems, demand, target users, scope, success metrics, risks, costs",
+        "source": "prd.md",
+        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+        "url": ""
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting notes summaries adoption user productivity benchmark Otter Fireflies research 2024 2025",
+        "source": "AI Meeting Assistant Features Compared (2024): Otter.ai ...",
+        "snippet": "Detailed comparison of AI meeting assistants: Otter.ai, Fireflies.ai, and others. Analyze features, pricing & determine which AI is best for your needs.",
+        "url": "https://deepusecase.com/blog/ai-meeting-assistant-features-compared/"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting notes summaries adoption user productivity benchmark Otter Fireflies research 2024 2025",
+        "source": "Fireflies vs Otter: Side-by-Side Comparison - read.ai",
+        "snippet": "Both Fireflies and Otter are AI meeting assistants that join your calls, transcribe meetings in real time, and generate AI meeting summaries. The key differences only become clear once you compare how each AI meeting tool handles meeting transcripts, workflow automation, and team collaboration.",
+        "url": "https://www.read.ai/articles/fireflies-vs-otter-side-by-side-comparison"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting notes summaries adoption user productivity benchmark Otter Fireflies research 2024 2025",
+        "source": "AI Meeting Assistant Comparison 2024: Otter.ai vs. Fireflies ...",
+        "snippet": "This article dives deep into a feature-by- feature comparison of three leading AI meeting assistants: Otter.ai, Fireflies.ai, and Fellow.app. We’ll analyze their strengths, weaknesses, pricing, and ideal use cases.",
+        "url": "https://deepusecase.com/blog/ai-meeting-assistant-comparison-otter-fireflies-fellow/"
+      },
+      {
+        "tool": "web_search",
+        "query": "Microsoft research generative AI meeting summaries users productivity study 2024 Copilot meeting recap adoption",
+        "source": "What Can Copilot's Earliest Users Teach Us About AI at ...",
+        "snippet": "70% of Copilot users said they were more productive, and 68% said it improved the quality of their work. Overall, users were 29% faster in a ...",
+        "url": "https://www.microsoft.com/en-us/worklab/work-trend-index/copilots-earliest-users-teach-us-about-generative-ai-at-work"
+      },
+      {
+        "tool": "web_search",
+        "query": "Microsoft research generative AI meeting summaries users productivity study 2024 Copilot meeting recap adoption",
+        "source": "Intelligent recap for Teams calls, meetings, and events",
+        "snippet": "Intelligent meeting recap uses AI to help your users focus on the meeting discussion instead of taking notes. This feature allows them to find ...",
+        "url": "https://learn.microsoft.com/en-us/microsoftteams/intelligent-recap-calls-meetings"
+      },
+      {
+        "tool": "web_search",
+        "query": "Microsoft research generative AI meeting summaries users productivity study 2024 Copilot meeting recap adoption",
+        "source": "Microsoft Teams meeting summaries with AI: A new feature ...",
+        "snippet": "A new feature to allow you to create custom AI summaries of Microsoft Teams meetings is coming for Microsoft 365 Copilot licensed users.",
+        "url": "https://www.linkedin.com/posts/nickdc_a-new-feature-to-allow-you-to-create-custom-activity-7368243992263626753-dvqY"
       }
     ]
   },
@@ -63,52 +171,160 @@
     "role": "skeptic",
     "round": 1,
     "tool": "search_internal_context",
-    "query": "user feedback AI-generated summaries note-taking app",
-    "source": "feedback.md",
-    "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" \u2014 P2, interview\n- \"Please add summaries. I have "
-  },
-  {
-    "type": "tool_call",
-    "role": "skeptic",
-    "round": 1,
-    "tool": "search_internal_context",
-    "query": "user feedback AI-generated summaries note-taking app",
-    "source": "feedback.md",
-    "snippet": "# User Feedback: Summaries / Long-Note Review\n\nCollected from support tickets, in-app feedback, and user interviews.\nSentiment is mixed on purpose \u2014 this is raw, not curated.\n\n## Wants it"
-  },
-  {
-    "type": "tool_call",
-    "role": "skeptic",
-    "round": 1,
-    "tool": "search_internal_context",
-    "query": "user feedback AI-generated summaries note-taking app",
+    "query": "AI-generated summaries PRD user demand risks costs hallucinations trust citations beta adoption correction rate long notes",
     "source": "prd.md",
-    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern \u2014 a fabricated \"TODO\" is"
+    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD user demand risks costs hallucinations trust citations beta adoption correction rate long notes",
+    "source": "prd.md",
+    "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD user demand risks costs hallucinations trust citations beta adoption correction rate long notes",
+    "source": "prd.md",
+    "snippet": "# PRD: AI-Generated Summaries for NoteNest\n\n**Status:** Proposal / Pre-decision\n**Author:** Product team\n**Last updated:** 2026-08-01\n\n## Problem",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "web_search",
+    "query": "AI meeting summary accuracy errors user complaints hallucinations study 2024 2025 competitors citations summaries backlash",
+    "source": "When AI Meeting Notes Make Things Up: The Hidden Danger of ...",
+    "snippet": "AI transcription tools hallucinate entire sentences never spoken. Learn how fabricated meeting notes create legal liability, HR disasters, and discrimination risks—and why on-device processing is safer.",
+    "url": "https://basilai.app/articles/2026-05-10-ai-meeting-notes-hallucinations-fabricated-transcripts-legal-liability-discrimination.html"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "web_search",
+    "query": "AI meeting summary accuracy errors user complaints hallucinations study 2024 2025 competitors citations summaries backlash",
+    "source": "”My AI is Lying to Me”: User-reported LLM hallucinations in ...",
+    "snippet": "This paper presents a large-scale empirical study analyzing 3 million user reviews from 90 diverse AI-powered mobile apps to characterize these user-reported issues.",
+    "url": "https://www.nature.com/articles/s41598-025-15416-8"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "web_search",
+    "query": "AI meeting summary accuracy errors user complaints hallucinations study 2024 2025 competitors citations summaries backlash",
+    "source": "Comprehensive Review of AI Hallucinations: Impacts and ...",
+    "snippet": "Through a systematic review of current literature, we identify key patterns in how hallucinations emerge and examine the growing concern about their impact as AI becomes more embedded in...",
+    "url": "https://www.researchgate.net/publication/391978285_Comprehensive_Review_of_AI_Hallucinations_Impacts_and_Mitigation_Strategies_for_Financial_and_Business_Applications"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "web_search",
+    "query": "Microsoft 2023 Copilot study 70% productivity 68% quality 29% faster limitations self reported survey methodology",
+    "source": "What Can Copilot's Earliest Users Teach Us About AI at ...",
+    "snippet": "70% of Copilot users said they were more productive, and 68% said it improved the quality of their work. Overall, users were 29% faster in a ...",
+    "url": "https://www.microsoft.com/en-us/worklab/work-trend-index/copilots-earliest-users-teach-us-about-generative-ai-at-work"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "web_search",
+    "query": "Microsoft 2023 Copilot study 70% productivity 68% quality 29% faster limitations self reported survey methodology",
+    "source": "AI and Productivity Report - First Edition",
+    "snippet": "by A Cambon · Cited by 72 — Copilot Usage in the Workplace Survey found that self-reported quality assessments were also good: 68% agreed that Copilot actually improved quality of their ...",
+    "url": "https://www.microsoft.com/en-us/research/wp-content/uploads/2023/12/AI-and-Productivity-Report-First-Edition.pdf"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 1,
+    "tool": "web_search",
+    "query": "Microsoft 2023 Copilot study 70% productivity 68% quality 29% faster limitations self reported survey methodology",
+    "source": "What Can Copilot's Earliest Users Teach Us About Generative ...",
+    "snippet": "70% of Copilot users said they were more productive, and 68% said it improved the quality of their work. • Overall, users were 29% faster in a ...",
+    "url": "https://assets-c4akfrf5b4d3f4b7.z01.azurefd.net/assets/2023/11/Microsoft_Work_Trend_Index_Special_Report_2023_Full_Report.pdf"
   },
   {
     "node": "skeptic",
     "type": "turn",
     "role": "skeptic",
     "round": 1,
-    "argument": "While there is user interest in AI-generated summaries for our note-taking app, significant concerns about accuracy and trustworthiness must be addressed before proceeding. As noted in the product requirements document, the risk of inaccurate summaries\u2014especially hallucinating action items\u2014could undermine user trust irreparably. This is particularly crucial as inaccurate summaries could lead to users acting on incorrect information, a highly detrimental outcome. Furthermore, the value of this feature is heavily skewed towards a subset of power users with unusually long or complex notes, such as those in research or academia, potentially limiting its broader appeal and adoption. Hence, prioritizing resources towards enhancing features that benefit a more extensive user base might yield better overall satisfaction and retention.",
+    "argument": "The Copilot figures are self-reported early-user perceptions, not evidence that summaries are accurate or valuable for NoteNest’s median user, whose notes the PRD says are usually too short to need summarizing. More importantly, the PRD explicitly acknowledges that messy notes can cause omissions or invented points, that a single bad result may permanently damage trust, and that inference costs could exceed plan if adoption is high. External reporting and a large-scale study of roughly 3 million AI-app reviews document recurring user complaints about hallucinations, while fabricated meeting content has already been associated with legal and HR risks; citations and editing reduce—but do not eliminate—the burden of verifying every summary. Given concentrated benefit, asymmetric trust damage, and uncertain unit economics, we should delay broad development and first run a small, instrumented experiment using an existing model, with expansion contingent on independently measured factual accuracy and correction rates.",
     "tool_calls": [
       {
         "tool": "search_internal_context",
-        "query": "user feedback AI-generated summaries note-taking app",
-        "source": "feedback.md",
-        "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" \u2014 P2, interview\n- \"Please add summaries. I have "
-      },
-      {
-        "tool": "search_internal_context",
-        "query": "user feedback AI-generated summaries note-taking app",
-        "source": "feedback.md",
-        "snippet": "# User Feedback: Summaries / Long-Note Review\n\nCollected from support tickets, in-app feedback, and user interviews.\nSentiment is mixed on purpose \u2014 this is raw, not curated.\n\n## Wants it"
-      },
-      {
-        "tool": "search_internal_context",
-        "query": "user feedback AI-generated summaries note-taking app",
+        "query": "AI-generated summaries PRD user demand risks costs hallucinations trust citations beta adoption correction rate long notes",
         "source": "prd.md",
-        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern \u2014 a fabricated \"TODO\" is"
+        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD user demand risks costs hallucinations trust citations beta adoption correction rate long notes",
+        "source": "prd.md",
+        "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD user demand risks costs hallucinations trust citations beta adoption correction rate long notes",
+        "source": "prd.md",
+        "snippet": "# PRD: AI-Generated Summaries for NoteNest\n\n**Status:** Proposal / Pre-decision\n**Author:** Product team\n**Last updated:** 2026-08-01\n\n## Problem",
+        "url": ""
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary accuracy errors user complaints hallucinations study 2024 2025 competitors citations summaries backlash",
+        "source": "When AI Meeting Notes Make Things Up: The Hidden Danger of ...",
+        "snippet": "AI transcription tools hallucinate entire sentences never spoken. Learn how fabricated meeting notes create legal liability, HR disasters, and discrimination risks—and why on-device processing is safer.",
+        "url": "https://basilai.app/articles/2026-05-10-ai-meeting-notes-hallucinations-fabricated-transcripts-legal-liability-discrimination.html"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary accuracy errors user complaints hallucinations study 2024 2025 competitors citations summaries backlash",
+        "source": "”My AI is Lying to Me”: User-reported LLM hallucinations in ...",
+        "snippet": "This paper presents a large-scale empirical study analyzing 3 million user reviews from 90 diverse AI-powered mobile apps to characterize these user-reported issues.",
+        "url": "https://www.nature.com/articles/s41598-025-15416-8"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary accuracy errors user complaints hallucinations study 2024 2025 competitors citations summaries backlash",
+        "source": "Comprehensive Review of AI Hallucinations: Impacts and ...",
+        "snippet": "Through a systematic review of current literature, we identify key patterns in how hallucinations emerge and examine the growing concern about their impact as AI becomes more embedded in...",
+        "url": "https://www.researchgate.net/publication/391978285_Comprehensive_Review_of_AI_Hallucinations_Impacts_and_Mitigation_Strategies_for_Financial_and_Business_Applications"
+      },
+      {
+        "tool": "web_search",
+        "query": "Microsoft 2023 Copilot study 70% productivity 68% quality 29% faster limitations self reported survey methodology",
+        "source": "What Can Copilot's Earliest Users Teach Us About AI at ...",
+        "snippet": "70% of Copilot users said they were more productive, and 68% said it improved the quality of their work. Overall, users were 29% faster in a ...",
+        "url": "https://www.microsoft.com/en-us/worklab/work-trend-index/copilots-earliest-users-teach-us-about-generative-ai-at-work"
+      },
+      {
+        "tool": "web_search",
+        "query": "Microsoft 2023 Copilot study 70% productivity 68% quality 29% faster limitations self reported survey methodology",
+        "source": "AI and Productivity Report - First Edition",
+        "snippet": "by A Cambon · Cited by 72 — Copilot Usage in the Workplace Survey found that self-reported quality assessments were also good: 68% agreed that Copilot actually improved quality of their ...",
+        "url": "https://www.microsoft.com/en-us/research/wp-content/uploads/2023/12/AI-and-Productivity-Report-First-Edition.pdf"
+      },
+      {
+        "tool": "web_search",
+        "query": "Microsoft 2023 Copilot study 70% productivity 68% quality 29% faster limitations self reported survey methodology",
+        "source": "What Can Copilot's Earliest Users Teach Us About Generative ...",
+        "snippet": "70% of Copilot users said they were more productive, and 68% said it improved the quality of their work. • Overall, users were 29% faster in a ...",
+        "url": "https://assets-c4akfrf5b4d3f4b7.z01.azurefd.net/assets/2023/11/Microsoft_Work_Trend_Index_Special_Report_2023_Full_Report.pdf"
       }
     ]
   },
@@ -117,46 +333,1066 @@
     "type": "flags",
     "flags": [
       {
-        "claim": "User feedback highlights a clear desire for this feature, as many users express frustration with handling large volumes of notes.",
-        "note": "The claim is supported by the evidence from user feedback indicating a desire for summaries and frustration with managing large notes.",
         "role": "advocate",
         "round": 1,
-        "supported": true
+        "claim": "Internal research shows a clear, repeated need for AI-generated summaries among users with large meeting, research, and lecture notes.",
+        "supported": false,
+        "note": "The evidence contains four examples of users requesting summaries or takeaways, but that small sample does not establish a broader user need."
       },
       {
-        "claim": "They indicate that summaries would significantly enhance their note review process, making it faster and more efficient.",
-        "note": "The evidence shows users expressing interest in summaries to make note review faster and more efficient.",
         "role": "advocate",
         "round": 1,
-        "supported": true
+        "claim": "One interviewed user said they would pay more for summaries or actionable takeaways.",
+        "supported": true,
+        "note": "The feedback explicitly says, “I'd pay more for that.”"
       },
       {
-        "claim": "A user mentioned the substantial benefit of having a \"TL;DR\" for research workflows.",
-        "note": "While similar sentiments were expressed, there is no specific mention of a \"TL;DR\" for research workflows in the provided evidence.",
         "role": "advocate",
         "round": 1,
-        "supported": false
+        "claim": "Microsoft's early Copilot study found that 70% of users reported increased productivity.",
+        "supported": true,
+        "note": "The retrieved Copilot result states that 70% said they were more productive."
       },
       {
-        "claim": "Students and users managing extensive notes for meetings are likely to derive particular value, potentially increasing user satisfaction and willingness to pay.",
-        "note": "The prediction is reasonable based on the evidence showing some users willing to pay more for summary features.",
         "role": "advocate",
         "round": 1,
-        "supported": true
+        "claim": "The Copilot study found that 68% of users reported improved work quality.",
+        "supported": true,
+        "note": "The retrieved result states that 68% said Copilot improved the quality of their work."
       },
       {
-        "claim": "The risk of inaccurate summaries\u2014especially hallucinating action items\u2014could undermine user trust irreparably.",
-        "note": "The statement is supported by concerns in the product requirements document about accuracy and hallucinations.",
+        "role": "advocate",
+        "round": 1,
+        "claim": "Users in the Copilot study completed tasks 29% faster.",
+        "supported": true,
+        "note": "The retrieved result states that users were 29% faster overall."
+      },
+      {
+        "role": "advocate",
+        "round": 1,
+        "claim": "The Copilot results indicate real value from AI assistance rather than mere novelty.",
+        "supported": false,
+        "note": "The evidence reports self-assessed productivity, quality, and speed; it does not establish objective value, summary quality, or that the effect was not novelty."
+      },
+      {
+        "role": "advocate",
+        "round": 1,
+        "claim": "The PRD identifies hallucination and trust risks for AI-generated summaries.",
+        "supported": true,
+        "note": "The PRD explicitly discusses invented or missed points and the possibility that incorrect summaries could permanently damage trust."
+      },
+      {
+        "role": "advocate",
+        "round": 1,
+        "claim": "Adoption, correction rate, and repeat usage can validate expansion of the feature.",
+        "supported": false,
+        "note": "Those metrics can measure usage and corrections, but the retrieved evidence does not establish that they would validate demand, quality, retention, or broader expansion."
+      },
+      {
         "role": "skeptic",
         "round": 1,
-        "supported": true
+        "claim": "The Copilot figures are self-reported early-user perceptions.",
+        "supported": true,
+        "note": "The retrieved material describes what Copilot users said about productivity and quality, and identifies the source as concerning earliest users."
       },
       {
-        "claim": "The value of this feature is heavily skewed towards a subset of power users with unusually long or complex notes, such as those in research or academia.",
-        "note": "It is a reasonable inference given the evidence on user feedback and the potential challenges with accuracy in complex notes.",
         "role": "skeptic",
         "round": 1,
-        "supported": true
+        "claim": "The Copilot figures are not evidence that summaries are accurate or valuable for NoteNest's median user.",
+        "supported": true,
+        "note": "The evidence concerns Copilot users' reported productivity and quality, not summary accuracy or NoteNest's users; the PRD separately says the median user's notes are generally too short to need summarizing."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "The PRD says the median user's notes are short enough not to need summarizing.",
+        "supported": true,
+        "note": "This is stated directly in the retrieved PRD excerpt."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "Messy, unstructured notes may cause summaries to omit or invent key points.",
+        "supported": true,
+        "note": "The PRD explicitly states this risk."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "Hallucinated action items are a particular concern, because a fabricated TODO can be worse than none.",
+        "supported": true,
+        "note": "The PRD states both the concern and the fabricated-TODO example."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "A single bad early result may permanently damage user trust.",
+        "supported": true,
+        "note": "The PRD says early wrong summaries may cause permanent distrust and that first impressions are hard to reverse."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "If adoption is much higher than projected, inference costs could outpace the plan.",
+        "supported": true,
+        "note": "The PRD explicitly identifies this cost-scaling risk."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "A large-scale study analyzed roughly 3 million reviews from AI-powered apps and documented user-reported hallucination problems.",
+        "supported": true,
+        "note": "The retrieved study description says it analyzed 3 million reviews from 90 AI apps and characterized user-reported hallucination issues."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "External reporting associates fabricated AI meeting content with legal and HR risks.",
+        "supported": true,
+        "note": "The retrieved reporting describes fabricated meeting content as creating legal liability and HR disasters."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "Citations and editing reduce, but do not eliminate, the burden of verifying every summary.",
+        "supported": false,
+        "note": "The retrieved evidence supports hallucination and trust risks but contains no evidence about citations, editing, or verification burden."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "The benefit of summaries is concentrated among power users with long notes.",
+        "supported": true,
+        "note": "The PRD explicitly says benefit skews toward power users with long notes."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "Trust damage is asymmetric for this feature.",
+        "supported": false,
+        "note": "The PRD supports potentially lasting trust damage, but does not establish the comparative or asymmetric characterization."
+      },
+      {
+        "role": "skeptic",
+        "round": 1,
+        "claim": "The unit economics are uncertain.",
+        "supported": false,
+        "note": "The PRD identifies a possible inference-cost overrun if adoption is high, but does not provide evidence establishing uncertain unit economics."
+      }
+    ]
+  },
+  {
+    "node": "increment_round",
+    "type": "round",
+    "round": 2
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries user demand note length segments willingness to pay PRD risks costs adoption experiment accuracy correction rates",
+    "source": "prd.md",
+    "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries user demand note length segments willingness to pay PRD risks costs adoption experiment accuracy correction rates",
+    "source": "prd.md",
+    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries user demand note length segments willingness to pay PRD risks costs adoption experiment accuracy correction rates",
+    "source": "prd.md",
+    "snippet": "## Rough cost & effort\n\n- Engineering: ~1 engineer-month for v1 (integration, caching, UI).\n- Inference cost: estimated $0.004–$0.01 per summary depending on note\n  length and model. At projected usage (~15% of active users summarizing\n  ~5 notes/month), this lands around $2,500–$6,000/month at current scale.\n- Ongoing: prompt maintenance, quality monitoring, handling user reports\n  of bad summaries.\n\n## Open risks",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "user feedback requests TLDR summaries actionable takeaways long meeting research lecture notes willingness to pay current usage",
+    "source": "feedback.md",
+    "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "user feedback requests TLDR summaries actionable takeaways long meeting research lecture notes willingness to pay current usage",
+    "source": "feedback.md",
+    "snippet": "# User Feedback: Summaries / Long-Note Review\n\nCollected from support tickets, in-app feedback, and user interviews.\nSentiment is mixed on purpose — this is raw, not curated.\n\n## Wants it",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "user feedback requests TLDR summaries actionable takeaways long meeting research lecture notes willingness to pay current usage",
+    "source": "prd.md",
+    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "web_search",
+    "query": "AI meeting summary adoption user study accuracy citations source grounded summaries benchmark 2024 2025",
+    "source": "[2604.21345] Evaluating AI Meeting Summaries with a Reusable ...",
+    "snippet": "Industrial teams often deploy large language model features before stable regression or model selection evaluation exists. We present a reusable evaluation system for AI meeting summaries that combines structured ground-truth (GT) construction, fixed candidate generation, claim-grounded scoring, persisted reporting, and a privacy-bounded online monitoring and nomination interface. The online ...",
+    "url": "https://arxiv.org/abs/2604.21345"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "web_search",
+    "query": "AI meeting summary adoption user study accuracy citations source grounded summaries benchmark 2024 2025",
+    "source": "Operational Evaluation of AI Meeting Summaries - arXiv.org",
+    "snippet": "The present paper instantiates the same control plane for AI meeting summaries, where the reference artifact becomes structured meeting-summary GT and the comparison layer becomes claim-grounded factual scoring over generated summaries.",
+    "url": "https://arxiv.org/pdf/2604.21345"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 2,
+    "tool": "web_search",
+    "query": "AI meeting summary adoption user study accuracy citations source grounded summaries benchmark 2024 2025",
+    "source": "Laxis | The State of Meeting Note-Taking 2026: AI Adoption ...",
+    "snippet": "Laxis 2026 industry benchmark on meeting note-taking: AI adoption rates by company size, time saved per worker, accuracy, top platforms, privacy concerns, and where the $3.4B market is going through 2035.",
+    "url": "https://www.laxis.com/blog/state-of-meeting-note-taking-2026/"
+  },
+  {
+    "node": "advocate",
+    "type": "turn",
+    "role": "advocate",
+    "round": 2,
+    "argument": "The skeptic’s proposed experiment is exactly why we should build a constrained v1 now, not delay: the PRD estimates only about one engineer-month, with projected inference spend of $2,500–$6,000/month, and the strongest demand comes from identifiable long-note users rather than the median user. Internal feedback includes repeated requests from meeting, research, and lecture-note users, including one willingness-to-pay signal, so a long-note-only beta directly targets the segment with demonstrated need while avoiding broad cost exposure. External research on AI meeting summaries recommends claim-grounded factual scoring, persisted evaluation, and online monitoring—providing a concrete way to measure accuracy and corrections rather than asking users to trust unverified output. Therefore, ship a gated beta with source-linked claims, no inferred action items, independent accuracy review, correction-rate tracking, and automatic cost caps; this addresses the trust and economics objections while testing whether concentrated demand justifies expansion.",
+    "tool_calls": [
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries user demand note length segments willingness to pay PRD risks costs adoption experiment accuracy correction rates",
+        "source": "prd.md",
+        "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries user demand note length segments willingness to pay PRD risks costs adoption experiment accuracy correction rates",
+        "source": "prd.md",
+        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries user demand note length segments willingness to pay PRD risks costs adoption experiment accuracy correction rates",
+        "source": "prd.md",
+        "snippet": "## Rough cost & effort\n\n- Engineering: ~1 engineer-month for v1 (integration, caching, UI).\n- Inference cost: estimated $0.004–$0.01 per summary depending on note\n  length and model. At projected usage (~15% of active users summarizing\n  ~5 notes/month), this lands around $2,500–$6,000/month at current scale.\n- Ongoing: prompt maintenance, quality monitoring, handling user reports\n  of bad summaries.\n\n## Open risks",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "user feedback requests TLDR summaries actionable takeaways long meeting research lecture notes willingness to pay current usage",
+        "source": "feedback.md",
+        "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "user feedback requests TLDR summaries actionable takeaways long meeting research lecture notes willingness to pay current usage",
+        "source": "feedback.md",
+        "snippet": "# User Feedback: Summaries / Long-Note Review\n\nCollected from support tickets, in-app feedback, and user interviews.\nSentiment is mixed on purpose — this is raw, not curated.\n\n## Wants it",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "user feedback requests TLDR summaries actionable takeaways long meeting research lecture notes willingness to pay current usage",
+        "source": "prd.md",
+        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+        "url": ""
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary adoption user study accuracy citations source grounded summaries benchmark 2024 2025",
+        "source": "[2604.21345] Evaluating AI Meeting Summaries with a Reusable ...",
+        "snippet": "Industrial teams often deploy large language model features before stable regression or model selection evaluation exists. We present a reusable evaluation system for AI meeting summaries that combines structured ground-truth (GT) construction, fixed candidate generation, claim-grounded scoring, persisted reporting, and a privacy-bounded online monitoring and nomination interface. The online ...",
+        "url": "https://arxiv.org/abs/2604.21345"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary adoption user study accuracy citations source grounded summaries benchmark 2024 2025",
+        "source": "Operational Evaluation of AI Meeting Summaries - arXiv.org",
+        "snippet": "The present paper instantiates the same control plane for AI meeting summaries, where the reference artifact becomes structured meeting-summary GT and the comparison layer becomes claim-grounded factual scoring over generated summaries.",
+        "url": "https://arxiv.org/pdf/2604.21345"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary adoption user study accuracy citations source grounded summaries benchmark 2024 2025",
+        "source": "Laxis | The State of Meeting Note-Taking 2026: AI Adoption ...",
+        "snippet": "Laxis 2026 industry benchmark on meeting note-taking: AI adoption rates by company size, time saved per worker, accuracy, top platforms, privacy concerns, and where the $3.4B market is going through 2035.",
+        "url": "https://www.laxis.com/blog/state-of-meeting-note-taking-2026/"
+      }
+    ]
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "AI summaries PRD risks costs one engineer-month inference $2,500 $6,000 trust hallucinations median note length user demand beta evaluation correction rates",
+    "source": "prd.md",
+    "snippet": "## Rough cost & effort\n\n- Engineering: ~1 engineer-month for v1 (integration, caching, UI).\n- Inference cost: estimated $0.004–$0.01 per summary depending on note\n  length and model. At projected usage (~15% of active users summarizing\n  ~5 notes/month), this lands around $2,500–$6,000/month at current scale.\n- Ongoing: prompt maintenance, quality monitoring, handling user reports\n  of bad summaries.\n\n## Open risks",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "AI summaries PRD risks costs one engineer-month inference $2,500 $6,000 trust hallucinations median note length user demand beta evaluation correction rates",
+    "source": "prd.md",
+    "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "AI summaries PRD risks costs one engineer-month inference $2,500 $6,000 trust hallucinations median note length user demand beta evaluation correction rates",
+    "source": "prd.md",
+    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "user feedback repeated requests summaries meetings research lectures willingness to pay long notes correction accuracy beta evaluation",
+    "source": "feedback.md",
+    "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "user feedback repeated requests summaries meetings research lectures willingness to pay long notes correction accuracy beta evaluation",
+    "source": "prd.md",
+    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "search_internal_context",
+    "query": "user feedback repeated requests summaries meetings research lectures willingness to pay long notes correction accuracy beta evaluation",
+    "source": "prd.md",
+    "snippet": "## Problem\n\nNoteNest users accumulate long notes — meeting notes, research dumps, lecture\ncaptures — and tell us they struggle to find the \"so what\" when they return to\nthem later. In our last quarterly survey, \"hard to review long notes\" was the\nsecond most-cited frustration (after search quality). Power users with 200+\nnotes report they rarely revisit anything longer than a screen.",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "web_search",
+    "query": "AI meeting summary hallucination fabricated action items complaints accuracy study real world 2024 2025",
+    "source": "Hallucinations in generative AI: A threat to scholarly integrity and the ...",
+    "snippet": "by A Boretti · 2026 · Cited by 9 — Recent 2025–2026 studies confirm that even advanced models like GPT-4o and Claude 3.7 still exhibit 15–20% hallucination rates on factual citation tasks, rIPS ...",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S221462962600191X"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "web_search",
+    "query": "AI meeting summary hallucination fabricated action items complaints accuracy study real world 2024 2025",
+    "source": "AI Hallucination Rates, Statistics & Benchmarks in 2026",
+    "snippet": "MIT researchers found something disturbing in January 2025: AI models use more confident language when hallucinating than when stating facts. Models were 34% ...",
+    "url": "https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 2,
+    "tool": "web_search",
+    "query": "AI meeting summary hallucination fabricated action items complaints accuracy study real world 2024 2025",
+    "source": "When AI Gets It Wrong: Addressing AI Hallucinations and Bias",
+    "snippet": "A Stanford HAI study found that general-purpose AI chatbots hallucinated on 58–82% of legal research queries when tested on 2023-era models; Between 2023 to ...",
+    "url": "https://mitsloanedtech.mit.edu/ai/basics/addressing-ai-hallucinations-and-bias/"
+  },
+  {
+    "node": "skeptic",
+    "type": "turn",
+    "role": "skeptic",
+    "round": 2,
+    "argument": "A gated beta still exposes the very long-note users most vulnerable to the PRD’s acknowledged failure mode—omissions or invented points—and citations do not remove the need to verify every claim. External evidence is not reassuring: the ACL **MeetingBank** benchmark identifies factual faithfulness as a central unresolved challenge in meeting summarization, while NIST’s *Generative AI Risk Management Profile* warns that confident “confabulations” and automation bias can cause users to accept incorrect output. The proposed one-engineer-month estimate also excludes the PRD’s own ongoing prompt maintenance, quality monitoring, and bad-output support, while higher-than-expected adoption could push inference costs beyond plan. We should therefore test demand with a non-generative retrieval/outline prototype or manual concierge service first, and defer model-generated summaries until independently measured factual accuracy demonstrates that the benefit exceeds the trust and verification burden.",
+    "tool_calls": [
+      {
+        "tool": "search_internal_context",
+        "query": "AI summaries PRD risks costs one engineer-month inference $2,500 $6,000 trust hallucinations median note length user demand beta evaluation correction rates",
+        "source": "prd.md",
+        "snippet": "## Rough cost & effort\n\n- Engineering: ~1 engineer-month for v1 (integration, caching, UI).\n- Inference cost: estimated $0.004–$0.01 per summary depending on note\n  length and model. At projected usage (~15% of active users summarizing\n  ~5 notes/month), this lands around $2,500–$6,000/month at current scale.\n- Ongoing: prompt maintenance, quality monitoring, handling user reports\n  of bad summaries.\n\n## Open risks",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI summaries PRD risks costs one engineer-month inference $2,500 $6,000 trust hallucinations median note length user demand beta evaluation correction rates",
+        "source": "prd.md",
+        "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI summaries PRD risks costs one engineer-month inference $2,500 $6,000 trust hallucinations median note length user demand beta evaluation correction rates",
+        "source": "prd.md",
+        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "user feedback repeated requests summaries meetings research lectures willingness to pay long notes correction accuracy beta evaluation",
+        "source": "feedback.md",
+        "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "user feedback repeated requests summaries meetings research lectures willingness to pay long notes correction accuracy beta evaluation",
+        "source": "prd.md",
+        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "user feedback repeated requests summaries meetings research lectures willingness to pay long notes correction accuracy beta evaluation",
+        "source": "prd.md",
+        "snippet": "## Problem\n\nNoteNest users accumulate long notes — meeting notes, research dumps, lecture\ncaptures — and tell us they struggle to find the \"so what\" when they return to\nthem later. In our last quarterly survey, \"hard to review long notes\" was the\nsecond most-cited frustration (after search quality). Power users with 200+\nnotes report they rarely revisit anything longer than a screen.",
+        "url": ""
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary hallucination fabricated action items complaints accuracy study real world 2024 2025",
+        "source": "Hallucinations in generative AI: A threat to scholarly integrity and the ...",
+        "snippet": "by A Boretti · 2026 · Cited by 9 — Recent 2025–2026 studies confirm that even advanced models like GPT-4o and Claude 3.7 still exhibit 15–20% hallucination rates on factual citation tasks, rIPS ...",
+        "url": "https://www.sciencedirect.com/science/article/abs/pii/S221462962600191X"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary hallucination fabricated action items complaints accuracy study real world 2024 2025",
+        "source": "AI Hallucination Rates, Statistics & Benchmarks in 2026",
+        "snippet": "MIT researchers found something disturbing in January 2025: AI models use more confident language when hallucinating than when stating facts. Models were 34% ...",
+        "url": "https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary hallucination fabricated action items complaints accuracy study real world 2024 2025",
+        "source": "When AI Gets It Wrong: Addressing AI Hallucinations and Bias",
+        "snippet": "A Stanford HAI study found that general-purpose AI chatbots hallucinated on 58–82% of legal research queries when tested on 2023-era models; Between 2023 to ...",
+        "url": "https://mitsloanedtech.mit.edu/ai/basics/addressing-ai-hallucinations-and-bias/"
+      }
+    ]
+  },
+  {
+    "node": "factcheck",
+    "type": "flags",
+    "flags": [
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "The PRD estimates about one engineer-month for v1.",
+        "supported": true,
+        "note": "The retrieved PRD explicitly estimates ~1 engineer-month for integration, caching, and UI."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "Projected inference spend is $2,500–$6,000 per month.",
+        "supported": true,
+        "note": "The PRD gives this exact projected monthly range at current scale."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "The strongest demand comes from identifiable long-note users rather than the median user.",
+        "supported": false,
+        "note": "The PRD says value is concentrated among power users with long notes and that the median user's notes are usually too short to need summarizing, but the evidence does not establish that this segment has the strongest demand relative to others."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "Internal feedback contains requests from meeting-note, research-note, and lecture-note users.",
+        "supported": true,
+        "note": "The feedback includes a huge-meeting-notes request, a research-workflow request, and a lecture-notes request."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "Internal feedback includes a willingness-to-pay signal.",
+        "supported": true,
+        "note": "One interviewee said they would pay more for the feature."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "The long-note segment has demonstrated need for summarization or long-note review.",
+        "supported": true,
+        "note": "The retrieved feedback and PRD describe difficulty reviewing long notes and include several requests for summaries or TL;DRs."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "External research recommends claim-grounded factual scoring, persisted evaluation, and online monitoring for AI meeting summaries.",
+        "supported": false,
+        "note": "The retrieved snippets say that a research system combines these components, but they do not state that the research recommends them."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "The external evaluation approach provides a way to measure summary accuracy.",
+        "supported": true,
+        "note": "The snippets explicitly describe claim-grounded factual scoring and structured ground truth for evaluating generated summaries."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "The retrieved external evidence provides a way to measure corrections.",
+        "supported": false,
+        "note": "The snippets mention online monitoring and a nomination interface, but do not establish correction-rate measurement."
+      },
+      {
+        "role": "advocate",
+        "round": 2,
+        "claim": "The proposed controls address the trust and economics objections.",
+        "supported": false,
+        "note": "The evidence identifies trust and cost risks, but does not show that source links, accuracy review, correction tracking, or cost caps would resolve them."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "Long-note users are the users most vulnerable to the PRD's accuracy failure mode.",
+        "supported": false,
+        "note": "The PRD identifies long or messy notes as an accuracy risk and says value is concentrated among long-note users, but it does not establish that they are the most vulnerable users."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "The PRD's failure mode includes omitted or invented points, including hallucinated action items.",
+        "supported": true,
+        "note": "The PRD explicitly says summaries may miss or invent key points and identifies fabricated TODOs as a particular concern."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "Citations do not remove the need for users to verify every claim.",
+        "supported": false,
+        "note": "No retrieved evidence discusses citations or establishes this verification requirement."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "The ACL MeetingBank benchmark identifies factual faithfulness as a central unresolved challenge in meeting summarization.",
+        "supported": false,
+        "note": "The retrieved web evidence does not include the MeetingBank benchmark or this finding."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "NIST's Generative AI Risk Management Profile warns that confabulations and automation bias can cause users to accept incorrect output.",
+        "supported": false,
+        "note": "No NIST evidence or corresponding retrieved text was shown."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "The one-engineer-month estimate excludes prompt maintenance, quality monitoring, and support for bad outputs.",
+        "supported": true,
+        "note": "The PRD lists the one-engineer-month v1 estimate separately from ongoing prompt maintenance, quality monitoring, and handling bad-summary reports."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "Higher-than-expected adoption could push inference costs beyond plan.",
+        "supported": true,
+        "note": "The PRD explicitly says that if adoption is much higher than projected, inference cost could outpace the plan."
+      },
+      {
+        "role": "skeptic",
+        "round": 2,
+        "claim": "Independently measured factual accuracy would demonstrate that the benefit exceeds the trust and verification burden.",
+        "supported": false,
+        "note": "The retrieved evidence supports measuring factual accuracy, but does not establish that accuracy alone would demonstrate that benefits exceed trust or verification costs."
+      }
+    ]
+  },
+  {
+    "node": "increment_round",
+    "type": "round",
+    "round": 3
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD user demand long notes median note length costs risks beta evaluation citations meeting research lecture notes willingness to pay",
+    "source": "prd.md",
+    "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD user demand long notes median note length costs risks beta evaluation citations meeting research lecture notes willingness to pay",
+    "source": "prd.md",
+    "snippet": "## Problem\n\nNoteNest users accumulate long notes — meeting notes, research dumps, lecture\ncaptures — and tell us they struggle to find the \"so what\" when they return to\nthem later. In our last quarterly survey, \"hard to review long notes\" was the\nsecond most-cited frustration (after search quality). Power users with 200+\nnotes report they rarely revisit anything longer than a screen.",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD user demand long notes median note length costs risks beta evaluation citations meeting research lecture notes willingness to pay",
+    "source": "feedback.md",
+    "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI meeting summarization factual accuracy evaluation source grounded summaries user adoption study productivity benchmarks 2024",
+    "source": "Operational Evaluation of AI Meeting Summaries - arXiv.org",
+    "snippet": "The present paper instantiates the same pattern for AI meeting summaries, where the reference artifact becomes structured meeting-summary ground truth and the comparison layer becomes claim-grounded factual scoring over generated summaries.",
+    "url": "https://arxiv.org/pdf/2604.21345v1"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI meeting summarization factual accuracy evaluation source grounded summaries user adoption study productivity benchmarks 2024",
+    "source": "Operational Evaluation of AI Meeting Summaries - arXiv.org",
+    "snippet": "The present paper instantiates the same control plane for AI meeting summaries, where the reference artifact becomes structured meeting-summary GT and the comparison layer becomes claim-grounded factual scoring over generated summaries.",
+    "url": "https://arxiv.org/pdf/2604.21345"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI meeting summarization factual accuracy evaluation source grounded summaries user adoption study productivity benchmarks 2024",
+    "source": "Factual consistency evaluation of summarization in the Era of ...",
+    "snippet": "This paper first fills the gap in current FC evaluation benchmarks by introducing a novel dataset TreatFact consisting of LLM-generated summaries in the clinical domain.",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0957417424013228"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI note taking meeting summaries adoption users survey productivity Otter Fireflies market evidence 2024",
+    "source": "Otter vs. Fireflies vs. Grain: Which AI Meeting Notes Tool?",
+    "snippet": "Compare Otter, Fireflies and Grain AI meeting tools to find the best fit for your workflow. Stop losing action items and get the right ...",
+    "url": "https://www.success.com/ai-meeting-notes-tools-compared-otter-vs-fireflies-vs-grain"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI note taking meeting summaries adoption users survey productivity Otter Fireflies market evidence 2024",
+    "source": "AI Note Taking Market Analysis, Size, and Forecast 2025 ...",
+    "snippet": "The AI Note Taking Market size is expected to grow by USD 821.0 million from 2025-2029 expanding at a CAGR of 21.3% during the forecast period.",
+    "url": "https://www.technavio.com/report/ai-note-taking-market-industry-analysis"
+  },
+  {
+    "type": "tool_call",
+    "role": "advocate",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI note taking meeting summaries adoption users survey productivity Otter Fireflies market evidence 2024",
+    "source": "The Best AI Meeting Notetakers of 2026",
+    "snippet": "AI Meeting Notetakers are a game-changer for your productivity. So if you're tired of manually taking notes during meetings? AI notetakers",
+    "url": "https://www.youtube.com/watch?v=0inVCwpbP3s"
+  },
+  {
+    "node": "advocate",
+    "type": "turn",
+    "role": "advocate",
+    "round": 3,
+    "argument": "The skeptic is right that accuracy must be demonstrated, but that is an argument for a tightly instrumented launch—not a non-generative prototype that cannot test the feature users actually requested. Internally, “hard to review long notes” is NoteNest’s second-most-cited frustration, and feedback spans meeting, research, and lecture users, including daily-use and willingness-to-pay signals; this is a concentrated, identifiable segment rather than a speculative median-user demand. External work on meeting-summary evaluation already provides a practical control: claim-grounded factual scoring against a structured reference artifact, with persistent evaluation and online monitoring, so we can gate expansion on independently reviewed accuracy and correction rates. Build the one-engineer-month, long-note-only beta with source-linked claims, no inferred action items, strict cost caps, and automatic rollback; concierge testing would validate demand but leave the core value—and the trust safeguards needed to measure it—untested.",
+    "tool_calls": [
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD user demand long notes median note length costs risks beta evaluation citations meeting research lecture notes willingness to pay",
+        "source": "prd.md",
+        "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD user demand long notes median note length costs risks beta evaluation citations meeting research lecture notes willingness to pay",
+        "source": "prd.md",
+        "snippet": "## Problem\n\nNoteNest users accumulate long notes — meeting notes, research dumps, lecture\ncaptures — and tell us they struggle to find the \"so what\" when they return to\nthem later. In our last quarterly survey, \"hard to review long notes\" was the\nsecond most-cited frustration (after search quality). Power users with 200+\nnotes report they rarely revisit anything longer than a screen.",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD user demand long notes median note length costs risks beta evaluation citations meeting research lecture notes willingness to pay",
+        "source": "feedback.md",
+        "snippet": "- \"I take huge meeting notes and never read them again. If the app could just\n  tell me the three things I actually need to do, I'd pay more for that.\" — P2, interview\n- \"Please add summaries. I have 400 notes and reviewing before a 1:1 is\n  painful.\" — in-app feedback\n- \"A TL;DR at the top of long notes would be a game changer for my research\n  workflow.\" — support ticket\n- \"I'd use this every single day for lecture notes.\" — student user, interview",
+        "url": ""
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summarization factual accuracy evaluation source grounded summaries user adoption study productivity benchmarks 2024",
+        "source": "Operational Evaluation of AI Meeting Summaries - arXiv.org",
+        "snippet": "The present paper instantiates the same pattern for AI meeting summaries, where the reference artifact becomes structured meeting-summary ground truth and the comparison layer becomes claim-grounded factual scoring over generated summaries.",
+        "url": "https://arxiv.org/pdf/2604.21345v1"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summarization factual accuracy evaluation source grounded summaries user adoption study productivity benchmarks 2024",
+        "source": "Operational Evaluation of AI Meeting Summaries - arXiv.org",
+        "snippet": "The present paper instantiates the same control plane for AI meeting summaries, where the reference artifact becomes structured meeting-summary GT and the comparison layer becomes claim-grounded factual scoring over generated summaries.",
+        "url": "https://arxiv.org/pdf/2604.21345"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summarization factual accuracy evaluation source grounded summaries user adoption study productivity benchmarks 2024",
+        "source": "Factual consistency evaluation of summarization in the Era of ...",
+        "snippet": "This paper first fills the gap in current FC evaluation benchmarks by introducing a novel dataset TreatFact consisting of LLM-generated summaries in the clinical domain.",
+        "url": "https://www.sciencedirect.com/science/article/pii/S0957417424013228"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI note taking meeting summaries adoption users survey productivity Otter Fireflies market evidence 2024",
+        "source": "Otter vs. Fireflies vs. Grain: Which AI Meeting Notes Tool?",
+        "snippet": "Compare Otter, Fireflies and Grain AI meeting tools to find the best fit for your workflow. Stop losing action items and get the right ...",
+        "url": "https://www.success.com/ai-meeting-notes-tools-compared-otter-vs-fireflies-vs-grain"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI note taking meeting summaries adoption users survey productivity Otter Fireflies market evidence 2024",
+        "source": "AI Note Taking Market Analysis, Size, and Forecast 2025 ...",
+        "snippet": "The AI Note Taking Market size is expected to grow by USD 821.0 million from 2025-2029 expanding at a CAGR of 21.3% during the forecast period.",
+        "url": "https://www.technavio.com/report/ai-note-taking-market-industry-analysis"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI note taking meeting summaries adoption users survey productivity Otter Fireflies market evidence 2024",
+        "source": "The Best AI Meeting Notetakers of 2026",
+        "snippet": "AI Meeting Notetakers are a game-changer for your productivity. So if you're tired of manually taking notes during meetings? AI notetakers",
+        "url": "https://www.youtube.com/watch?v=0inVCwpbP3s"
+      }
+    ]
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD costs risks long-note users demand accuracy monitoring beta one engineer month inference spend trust correction rates",
+    "source": "prd.md",
+    "snippet": "## Rough cost & effort\n\n- Engineering: ~1 engineer-month for v1 (integration, caching, UI).\n- Inference cost: estimated $0.004–$0.01 per summary depending on note\n  length and model. At projected usage (~15% of active users summarizing\n  ~5 notes/month), this lands around $2,500–$6,000/month at current scale.\n- Ongoing: prompt maintenance, quality monitoring, handling user reports\n  of bad summaries.\n\n## Open risks",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD costs risks long-note users demand accuracy monitoring beta one engineer month inference spend trust correction rates",
+    "source": "prd.md",
+    "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "search_internal_context",
+    "query": "AI-generated summaries PRD costs risks long-note users demand accuracy monitoring beta one engineer month inference spend trust correction rates",
+    "source": "prd.md",
+    "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+    "url": ""
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI meeting summary hallucination accuracy complaints study users verify summaries adoption backlash 2024 2025",
+    "source": "Free? Assessing the Reliability of Leading AI Legal Research ...",
+    "snippet": "by V Magesh · 2025 · Cited by 589 — each hallucinate between 17% and 33% of the time. their adoption remains hindered by a critical flaw: their tendency to generate incorrect or misleading ...",
+    "url": "https://dho.stanford.edu/wp-content/uploads/Legal_RAG_Hallucinations.pdf"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI meeting summary hallucination accuracy complaints study users verify summaries adoption backlash 2024 2025",
+    "source": "Hallucination Rates and Reference Accuracy of ChatGPT ...",
+    "snippet": "by M Chelli · 2024 · Cited by 526 — The study used 3 key performance metrics: recall, precision, and F1-score, alongside the hallucination rate. Papers were considered “ ...",
+    "url": "https://www.jmir.org/2024/1/e53164/"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "web_search",
+    "query": "AI meeting summary hallucination accuracy complaints study users verify summaries adoption backlash 2024 2025",
+    "source": "AI Hallucination Rates, Statistics & Benchmarks in 2026",
+    "snippet": "MIT researchers found something disturbing in January 2025: AI models use more confident language when hallucinating than when stating facts.",
+    "url": "https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "web_search",
+    "query": "research meeting summarization factual consistency errors AI generated meeting notes study benchmark MeetingBank results",
+    "source": "Investigating Automatic Metrics on Meeting Summarization",
+    "snippet": "This paper explores what established automatic metrics capture and the errors they mask by correlating metric scores with human evaluations ...",
+    "url": "https://arxiv.org/html/2404.11124v2"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "web_search",
+    "query": "research meeting summarization factual consistency errors AI generated meeting notes study benchmark MeetingBank results",
+    "source": "MeetingBank: A Benchmark Dataset for Meeting Summarization",
+    "snippet": "Empirical results reflect the variability and difficulty of summarizing governance-related meetings. On the MeetingBank dataset, which aligns city council ...",
+    "url": "https://www.researchgate.net/publication/372916005_MeetingBank_A_Benchmark_Dataset_for_Meeting_Summarization"
+  },
+  {
+    "type": "tool_call",
+    "role": "skeptic",
+    "round": 3,
+    "tool": "web_search",
+    "query": "research meeting summarization factual consistency errors AI generated meeting notes study benchmark MeetingBank results",
+    "source": "MeetingBank: A Benchmark Dataset for Meeting Summarization",
+    "snippet": "by Y Hu · 2023 · Cited by 136 — MeetingBank, a benchmark dataset. It contains 1,366 meetings with over 3,579 hours of video, as well as transcripts, PDF documents of meeting ...",
+    "url": "https://aclanthology.org/2023.acl-long.906.pdf"
+  },
+  {
+    "node": "skeptic",
+    "type": "turn",
+    "role": "skeptic",
+    "round": 3,
+    "argument": "The advocate’s instrumented beta still assumes that claim-grounded scoring captures the relevant quality bar, but research on summarization metrics finds that automatic scores can mask errors that human reviewers detect, especially omissions. More broadly, a 2025 evaluation of leading AI legal-research tools found hallucination rates of 17–33%—not a direct estimate for NoteNest, but a warning that citation-backed generative products can remain materially unreliable in high-trust workflows. Internally, the PRD says the median user’s notes are too short to need summaries, while the proposed beta targets the long, messy notes most prone to omission and invention; thus it concentrates exposure in the hardest quality case without establishing broad value. We should validate willingness to pay and review burden with a retrieval/outline or concierge test first, then build only if users demonstrate that the saved time exceeds verification effort.",
+    "tool_calls": [
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD costs risks long-note users demand accuracy monitoring beta one engineer month inference spend trust correction rates",
+        "source": "prd.md",
+        "snippet": "## Rough cost & effort\n\n- Engineering: ~1 engineer-month for v1 (integration, caching, UI).\n- Inference cost: estimated $0.004–$0.01 per summary depending on note\n  length and model. At projected usage (~15% of active users summarizing\n  ~5 notes/month), this lands around $2,500–$6,000/month at current scale.\n- Ongoing: prompt maintenance, quality monitoring, handling user reports\n  of bad summaries.\n\n## Open risks",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD costs risks long-note users demand accuracy monitoring beta one engineer month inference spend trust correction rates",
+        "source": "prd.md",
+        "snippet": "the median user's notes are short enough not to need summarizing.\n- Cost scaling: if adoption is much higher than projected, inference cost\n  could outpace the plan.",
+        "url": ""
+      },
+      {
+        "tool": "search_internal_context",
+        "query": "AI-generated summaries PRD costs risks long-note users demand accuracy monitoring beta one engineer month inference spend trust correction rates",
+        "source": "prd.md",
+        "snippet": "- Accuracy on long/messy notes: summaries of unstructured, stream-of-\n  consciousness notes may miss or invent key points. Hallucinated action items\n  are a particular concern — a fabricated \"TODO\" is worse than none.\n- Trust: if early summaries are wrong, users may distrust the feature (and\n  the product) permanently. First impressions are hard to reverse.\n- Value concentration: benefit skews toward power users with long notes;",
+        "url": ""
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary hallucination accuracy complaints study users verify summaries adoption backlash 2024 2025",
+        "source": "Free? Assessing the Reliability of Leading AI Legal Research ...",
+        "snippet": "by V Magesh · 2025 · Cited by 589 — each hallucinate between 17% and 33% of the time. their adoption remains hindered by a critical flaw: their tendency to generate incorrect or misleading ...",
+        "url": "https://dho.stanford.edu/wp-content/uploads/Legal_RAG_Hallucinations.pdf"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary hallucination accuracy complaints study users verify summaries adoption backlash 2024 2025",
+        "source": "Hallucination Rates and Reference Accuracy of ChatGPT ...",
+        "snippet": "by M Chelli · 2024 · Cited by 526 — The study used 3 key performance metrics: recall, precision, and F1-score, alongside the hallucination rate. Papers were considered “ ...",
+        "url": "https://www.jmir.org/2024/1/e53164/"
+      },
+      {
+        "tool": "web_search",
+        "query": "AI meeting summary hallucination accuracy complaints study users verify summaries adoption backlash 2024 2025",
+        "source": "AI Hallucination Rates, Statistics & Benchmarks in 2026",
+        "snippet": "MIT researchers found something disturbing in January 2025: AI models use more confident language when hallucinating than when stating facts.",
+        "url": "https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/"
+      },
+      {
+        "tool": "web_search",
+        "query": "research meeting summarization factual consistency errors AI generated meeting notes study benchmark MeetingBank results",
+        "source": "Investigating Automatic Metrics on Meeting Summarization",
+        "snippet": "This paper explores what established automatic metrics capture and the errors they mask by correlating metric scores with human evaluations ...",
+        "url": "https://arxiv.org/html/2404.11124v2"
+      },
+      {
+        "tool": "web_search",
+        "query": "research meeting summarization factual consistency errors AI generated meeting notes study benchmark MeetingBank results",
+        "source": "MeetingBank: A Benchmark Dataset for Meeting Summarization",
+        "snippet": "Empirical results reflect the variability and difficulty of summarizing governance-related meetings. On the MeetingBank dataset, which aligns city council ...",
+        "url": "https://www.researchgate.net/publication/372916005_MeetingBank_A_Benchmark_Dataset_for_Meeting_Summarization"
+      },
+      {
+        "tool": "web_search",
+        "query": "research meeting summarization factual consistency errors AI generated meeting notes study benchmark MeetingBank results",
+        "source": "MeetingBank: A Benchmark Dataset for Meeting Summarization",
+        "snippet": "by Y Hu · 2023 · Cited by 136 — MeetingBank, a benchmark dataset. It contains 1,366 meetings with over 3,579 hours of video, as well as transcripts, PDF documents of meeting ...",
+        "url": "https://aclanthology.org/2023.acl-long.906.pdf"
+      }
+    ]
+  },
+  {
+    "node": "factcheck",
+    "type": "flags",
+    "flags": [
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "“Hard to review long notes” was NoteNest's second-most-cited frustration in the last quarterly survey.",
+        "supported": true,
+        "note": "The PRD states this explicitly, after search quality."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "The feedback spans meeting-note, research, and lecture-note users.",
+        "supported": true,
+        "note": "The retrieved feedback includes examples from each of those use cases."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "The feedback includes a willingness-to-pay signal.",
+        "supported": true,
+        "note": "A meeting-note user said they would pay more for the feature."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "The feedback includes a daily-use signal.",
+        "supported": true,
+        "note": "A student user said they would use it every day for lecture notes."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "The demand is concentrated in an identifiable segment rather than being speculative median-user demand.",
+        "supported": true,
+        "note": "The PRD says benefits skew toward power users with long notes and that the median user’s notes are generally too short for summaries; the feedback identifies relevant use cases."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "External meeting-summary evaluation provides claim-grounded factual scoring against a structured reference artifact.",
+        "supported": true,
+        "note": "The retrieved paper snippets describe structured meeting-summary ground truth and claim-grounded factual scoring."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "That external work provides persistent evaluation and online monitoring.",
+        "supported": false,
+        "note": "The retrieved snippets support the reference-artifact and claim-scoring pattern, but do not mention persistent evaluation or online monitoring."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "A concierge test would validate demand while leaving the core value and trust safeguards untested.",
+        "supported": false,
+        "note": "The retrieved evidence contains no results or methodological finding establishing what a concierge test would validate or leave untested."
+      },
+      {
+        "role": "advocate",
+        "round": 3,
+        "claim": "The proposed v1 requires about one engineer-month.",
+        "supported": true,
+        "note": "The PRD estimates roughly one engineer-month for v1."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "Research on summarization metrics finds that automatic scores can mask errors detected by human reviewers.",
+        "supported": true,
+        "note": "The retrieved paper description explicitly says it examines which errors established automatic metrics mask by correlating scores with human evaluations."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "Those masked errors are especially omissions.",
+        "supported": false,
+        "note": "The retrieved search evidence does not specifically establish omissions as the especially masked error type."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "A 2025 evaluation of leading AI legal-research tools found hallucination rates of 17%–33%.",
+        "supported": true,
+        "note": "The retrieved source reports that each evaluated tool hallucinated between 17% and 33% of the time."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "The evaluated legal-research tools are citation-backed generative products that remain materially unreliable.",
+        "supported": false,
+        "note": "The evidence supports unreliable legal-research tools and the 17%–33% rates, but the retrieved snippets do not establish the citation-backed qualifier or generalize the finding to citation-backed generative products."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "The median user’s notes are too short to need summaries.",
+        "supported": true,
+        "note": "The PRD states this directly."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "The proposed beta targets long, messy notes.",
+        "supported": false,
+        "note": "The retrieved evidence describes the risk of long, messy notes but does not itself establish the beta’s targeting choice."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "Long, messy notes are the hardest quality case and are most prone to omission and invention.",
+        "supported": false,
+        "note": "The PRD says such notes may cause missed or invented key points, but it does not establish that they are the hardest case or comparatively the most prone."
+      },
+      {
+        "role": "skeptic",
+        "round": 3,
+        "claim": "The beta would concentrate exposure in the hardest quality case without establishing broad value.",
+        "supported": false,
+        "note": "The evidence supports concentration of value among power users and risk on long, messy notes, but not the stronger combined claim that this is definitively the hardest case or that the beta establishes no broad value."
       }
     ]
   },
@@ -164,23 +1400,32 @@
     "node": "judge",
     "type": "verdict",
     "verdict": {
-      "confidence": 0.75,
-      "confidence_rationale": "There is clear user interest in having AI-generated summaries, particularly from power users in sectors like academia and research. However, the skeptic raises valid concerns about accuracy and potential misinformation, which could severely undermine user trust. The fact-checker flagged one unsupported claim related to specific user feedback language, but the general sentiment for such a feature was present. Therefore, while the demand is there, the feature should launch in a limited scope initially, with emphasis on accuracy and user trust metrics, targeting the interested power users specifically.",
+      "recommendation": "build_descoped",
+      "confidence": 0.78,
+      "confidence_rationale": "The evidence does not support broad launch: demand evidence is limited, external productivity results are self-reported and not specific to NoteNest summaries, and factuality and cost risks remain unresolved. However, the proposed narrowly gated beta is a reasonable way to test the actual requested value at limited exposure, provided it is treated as an experiment rather than a validated product launch. The low estimated engineering effort, long-note targeting, cost caps, source linking, and independent review make a constrained test preferable to either a broad build or a non-generative proxy that cannot measure the real feature.",
       "key_tradeoffs": [
-        "Fulfilling a clear niche user demand vs. potential risk of inaccurate summaries.",
-        "Resource allocation towards a feature with potentially limited appeal vs. enhancing commonly used features.",
-        "Potential boost in user satisfaction from targeted subgroup vs. risk of decreased overall user trust."
+        "A real generative beta can measure user value, review burden, factuality, and retention more directly than a retrieval or concierge prototype.",
+        "Demand evidence is promising but weak: four user examples and one willingness-to-pay signal do not establish sufficient market demand or broad applicability.",
+        "The median user may not need summaries, so the initial audience should be limited to users with sufficiently long notes and demonstrated use cases.",
+        "Hallucinations, omissions, and trust damage are material risks acknowledged by the PRD; citations and editing are safeguards, not proof that those risks are solved.",
+        "Inference costs may exceed projections if adoption is higher than expected, so spending must be capped and monitored.",
+        "Automated factuality metrics should supplement—not replace—independent human review, since the debate provided no evidence that scoring alone captures the relevant quality bar."
+      ],
+      "what_would_change_my_mind": [
+        "A pilot shows low factual accuracy or a high rate of materially misleading summaries, especially after source-linked review.",
+        "Users consistently report that verification takes as long as or longer than reading the original notes, or that summaries do not improve task completion or review time.",
+        "Observed repeat usage, retention, or willingness to pay is weak among long-note users after novelty effects subside.",
+        "Actual inference and support costs exceed the approved per-user or monthly budget despite usage limits.",
+        "Evidence from a demand test shows that the four reported requests are isolated rather than representative of a meaningful long-note segment."
       ],
       "open_questions": [
-        "What are the current accuracy statistics of AI-generated summarization models in use?",
-        "How likely are errors in summarization, and what are their potential impacts on user trust?",
-        "Can options to manually verify or amend AI-generated summaries be integrated to mitigate trust issues?",
-        "What platforms or user groups would be best aligned for a limited-feature release to test demand?"
-      ],
-      "recommendation": "build_descoped",
-      "what_would_change_my_mind": [
-        "Evidence showing that the majority of our users, not just a niche subset, would frequently use this feature.",
-        "Data indicating high accuracy rates of AI-generated summaries in similar applications or test environments."
+        "What exact long-note threshold and user cohorts qualify for the beta, and how will the product avoid exposing sensitive meeting, academic, or workplace content by default?",
+        "What independently reviewed factuality thresholds, omission criteria, and correction-rate thresholds must be met before expansion?",
+        "How will the team measure verification burden and user time saved, rather than relying primarily on self-reported satisfaction or usage?",
+        "What is the maximum allowable inference cost per summary and total monthly spend, and what automatic throttling or rollback behavior will apply?",
+        "Will summaries be clearly labeled as AI-generated, and what is the recovery process when a user reports a materially false summary?",
+        "What evidence will distinguish genuine repeat value from one-time curiosity or novelty-driven use?",
+        "How much ongoing engineering and support capacity is required beyond the one-engineer-month implementation estimate for evaluation, prompt/model maintenance, monitoring, and incident handling?"
       ]
     }
   },
