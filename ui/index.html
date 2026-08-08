@@ -260,6 +260,29 @@
     </div>
   </section>
 
+  <!-- ============ EXPORT ============ -->
+  <section id="export-record" class="hidden pb-16">
+    <div class="bg-white border border-line rounded-xl p-5 md:p-6">
+      <h3 class="flex items-center gap-2 font-display text-lg font-semibold text-ink mb-2">
+        <span aria-hidden="true">📤</span> Take this with you
+      </h3>
+      <p class="font-body text-inkSoft text-[15px] leading-relaxed mb-4 max-w-xl">
+        This debate doesn't have to end when you close the tab — export a clean,
+        readable record to share with a colleague or feed into another AI tool.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <button id="export-brief-btn" type="button"
+          class="font-mono text-xs uppercase tracking-[0.1em] bg-ink text-paper px-5 py-2.5 rounded-md hover:bg-inkSoft transition-colors">
+          Download brief (.md)
+        </button>
+        <button id="export-full-btn" type="button"
+          class="font-mono text-xs uppercase tracking-[0.1em] border border-line text-ink px-5 py-2.5 rounded-md hover:border-ink transition-colors">
+          Download full — with evidence (.md)
+        </button>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <!-- ============ EVIDENCE DETAIL MODAL ============ -->
@@ -527,6 +550,10 @@ const tradeoffsList     = document.getElementById('tradeoffs-list');
 const mindList          = document.getElementById('mind-list');
 const questionsList     = document.getElementById('questions-list');
 
+const exportSection    = document.getElementById('export-record');
+const exportBriefBtn   = document.getElementById('export-brief-btn');
+const exportFullBtn    = document.getElementById('export-full-btn');
+
 const evidenceModal          = document.getElementById('evidence-modal');
 const evidenceModalBackdrop  = document.getElementById('evidence-modal-backdrop');
 const evidenceModalCloseBtn  = document.getElementById('evidence-modal-close');
@@ -545,6 +572,13 @@ const state = {
   running: false, currentRound: 0, maxRounds: 0, turnsThisRound: 0,
   roundCells: {}, roundMarkers: {}, progressSteps: {}, thinking: null,
   activeCaseId: null,   // which CASES entry (or 'blank') is loaded into the form
+  question: '',
+  // A clean copy of the debate, accumulated from the same events that drive
+  // the DOM rendering — kept separate from roundCells/etc. (which hold DOM
+  // element references, not data) specifically so the export feature has a
+  // plain data model to build markdown from, independent of what's currently
+  // rendered or scrolled into view.
+  log: { transcript: [], flaggedClaims: [], verdict: null },
 };
 
 // ---------------------------------------------------------------
@@ -726,11 +760,16 @@ function activeCaseExample() {
 }
 
 function refreshReplayButtonState() {
+  // "start from scratch" has no matching recording — remove the button
+  // entirely rather than leave a disabled one sitting there with nothing
+  // to explain itself.
   const hasExample = !!activeCaseExample();
-  replayBtn.disabled = state.running || !hasExample;
-  replayBtn.classList.toggle('opacity-40', !hasExample);
-  replayBtn.classList.toggle('cursor-not-allowed', !hasExample);
-  replayBtn.title = hasExample ? '' : 'No saved example for a custom question';
+  replayBtn.classList.toggle('hidden', !hasExample);
+  if (!hasExample) return;
+
+  replayBtn.disabled = state.running;
+  replayBtn.classList.toggle('opacity-40', state.running);
+  replayBtn.classList.toggle('cursor-not-allowed', state.running);
 }
 
 function renderCaseChips() {
@@ -791,7 +830,9 @@ function resetDebateView() {
   state.currentRound = 0;
   state.turnsThisRound = 0;
   state.thinking = buildThinkingIndicator();
+  state.log = { transcript: [], flaggedClaims: [], verdict: null };
   verdictSection.classList.add('hidden');
+  exportSection.classList.add('hidden');
   errorBanner.classList.add('hidden');
   hideNewActivityToast();
 }
@@ -1128,6 +1169,9 @@ function fillList(ul, items) {
 }
 
 function showVerdict(v) {
+  state.log.verdict = v;
+  exportSection.classList.remove('hidden');
+
   verdictStampEl.textContent = REC_LABEL[v.recommendation] || v.recommendation;
   verdictStampEl.className = `shrink-0 font-display text-2xl font-semibold rounded-lg px-5 py-3 text-center leading-tight text-white ${REC_STYLE[v.recommendation] || 'bg-ink'}`;
 
@@ -1149,6 +1193,126 @@ function showVerdict(v) {
 }
 
 // ---------------------------------------------------------------
+// Export — builds a self-contained markdown record from state.log (the
+// plain-data copy of the debate, not the DOM) so it works identically for
+// a live debate or a replayed example. Two modes, differing only in
+// whether evidence is a bare citation or includes the full retrieved
+// snippet — everything that IS the debate (arguments, fact-check verdicts,
+// the decision memo) is identical in both; trimming those would cut
+// content, not just supporting bulk.
+// ---------------------------------------------------------------
+function slugify(text) {
+  return (text || 'debate').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 60) || 'debate';
+}
+
+function mdEvidenceLine(tc) {
+  const label = tc.url ? `[${tc.source}](${tc.url})` : tc.source;
+  return `- **${tc.tool}** — “${tc.query}” → ${label}`;
+}
+
+function mdEvidenceBlock(tc, full) {
+  const line = mdEvidenceLine(tc);
+  if (!full || !tc.snippet) return line;
+  const quoted = tc.snippet.trim().split('\n').map(l => `  > ${l}`).join('\n');
+  return `${line}\n\n${quoted}`;
+}
+
+function mdFlagLine(f) {
+  return `- ${f.supported ? '✓' : '⚠️'} **${f.role}**: ${f.claim}\n  *${f.note}*`;
+}
+
+function buildMarkdown(mode) {
+  const full = mode === 'full';
+  const v = state.log.verdict;
+  const lines = [];
+
+  lines.push(`# Should We Build It?`);
+  lines.push('');
+  lines.push(`**Question:** ${state.question}`);
+  lines.push('');
+  lines.push(`*Generated ${new Date().toLocaleString()} — ${state.maxRounds} round${state.maxRounds === 1 ? '' : 's'} — [should-we-build-it](https://github.com/matiascabello/should-we-build-it)*`);
+  lines.push('');
+
+  if (v) {
+    lines.push('## Verdict');
+    lines.push('');
+    lines.push(`**${REC_LABEL[v.recommendation] || v.recommendation}** — ${Math.round((v.confidence || 0) * 100)}% confidence`);
+    lines.push('');
+    if (v.confidence_rationale) { lines.push(v.confidence_rationale); lines.push(''); }
+
+    lines.push('### Key tradeoffs');
+    lines.push('');
+    (v.key_tradeoffs || []).forEach(t => lines.push(`- ${t}`));
+    lines.push('');
+
+    lines.push('### What would change my mind');
+    lines.push('');
+    (v.what_would_change_my_mind || []).forEach(t => lines.push(`- ${t}`));
+    lines.push('');
+
+    lines.push('### Open questions');
+    lines.push('');
+    (v.open_questions || []).forEach(t => lines.push(`- ${t}`));
+    lines.push('');
+  }
+
+  const unsupported = state.log.flaggedClaims.filter(f => !f.supported);
+  if (unsupported.length) {
+    lines.push('### Unsupported claims to double-check');
+    lines.push('');
+    unsupported.forEach(f => lines.push(`- **${f.role}** (round ${f.round}): ${f.claim}\n  *${f.note}*`));
+    lines.push('');
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push('## The debate');
+
+  const rounds = [...new Set(state.log.transcript.map(t => t.round))].sort((a, b) => a - b);
+  rounds.forEach(r => {
+    lines.push('');
+    lines.push(`### Round ${r}`);
+
+    state.log.transcript.filter(t => t.round === r).forEach(turn => {
+      lines.push('');
+      lines.push(`**${turn.role === 'advocate' ? 'Advocate' : 'Skeptic'}**`);
+      lines.push('');
+      lines.push(turn.argument);
+      if ((turn.tool_calls || []).length) {
+        lines.push('');
+        lines.push('Evidence:');
+        lines.push('');
+        turn.tool_calls.forEach(tc => lines.push(mdEvidenceBlock(tc, full)));
+      }
+    });
+
+    const roundFlags = state.log.flaggedClaims.filter(f => f.round === r);
+    if (roundFlags.length) {
+      lines.push('');
+      lines.push('**Fact-check:**');
+      lines.push('');
+      roundFlags.forEach(f => lines.push(mdFlagLine(f)));
+    }
+  });
+
+  return lines.join('\n') + '\n';
+}
+
+function downloadMarkdown(mode) {
+  const md = buildMarkdown(mode);
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = h('a', { attrs: { href: url, download: `should-we-build-it-${slugify(state.question)}-${mode}.md` } });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+exportBriefBtn.addEventListener('click', () => downloadMarkdown('brief'));
+exportFullBtn.addEventListener('click', () => downloadMarkdown('full'));
+
+// ---------------------------------------------------------------
 // Event dispatch + SSE streaming
 // ---------------------------------------------------------------
 function handleEvent(evt) {
@@ -1165,6 +1329,10 @@ function handleEvent(evt) {
       break;
     case 'turn':
       finalizeTurn(evt);
+      state.log.transcript.push({
+        round: evt.round, role: evt.role, argument: evt.argument,
+        tool_calls: evt.tool_calls || [],
+      });
       state.turnsThisRound++;
       // Both debaters have spoken — the fact-checker (a real LLM call) is
       // next, with nothing else visible until its 'flags' event arrives.
@@ -1172,6 +1340,7 @@ function handleEvent(evt) {
       break;
     case 'flags':
       addFlags(evt.flags || []);
+      state.log.flaggedClaims.push(...(evt.flags || []));
       showThinking(
         state.currentRound < state.maxRounds
           ? `Preparing round ${state.currentRound + 1}`
@@ -1216,6 +1385,7 @@ function setBusy(loading, replaying = false) {
 
 async function startDebate(question, maxRounds, context) {
   resetDebateView();
+  state.question = question;
   state.maxRounds = maxRounds;
   buildProgressBar(maxRounds);
   debateSection.classList.remove('hidden');
@@ -1291,6 +1461,7 @@ async function replayExample() {
   if (!example) return; // button should already be disabled in this case
 
   resetDebateView();
+  state.question = CASES.find(c => c.id === state.activeCaseId)?.question || '';
   debateSection.classList.remove('hidden');
   debateSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   showThinking('Preparing the debate');
