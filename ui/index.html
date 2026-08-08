@@ -120,8 +120,19 @@
 <div class="relative z-10 max-w-5xl mx-auto px-5 md:px-8 pb-28">
 
   <header class="pt-10 pb-8 border-b border-line">
-    <p class="font-mono text-[11px] uppercase tracking-[0.25em] text-gold mb-3">Case File — Product Decision</p>
-    <h1 class="font-display text-4xl md:text-5xl font-semibold text-ink tracking-tight">Should We Build It?</h1>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <p class="font-mono text-[11px] uppercase tracking-[0.25em] text-gold mb-3">Case File — Product Decision</p>
+        <h1 class="font-display text-4xl md:text-5xl font-semibold text-ink tracking-tight">Should We Build It?</h1>
+      </div>
+      <a href="https://github.com/matiascabello/should-we-build-it" target="_blank" rel="noopener noreferrer"
+        class="shrink-0 pt-1 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.15em] text-inkSoft hover:text-ink transition-colors">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+        </svg>
+        View source
+      </a>
+    </div>
     <p class="font-body text-inkSoft mt-3 max-w-xl leading-relaxed">
       An Advocate and a Skeptic argue a product decision, each gathering real evidence
       before they speak. A fact-checker keeps them honest. A judge renders the verdict.
@@ -302,6 +313,7 @@ const CASES = [
   {
     id: 'notenest-summaries',
     label: 'AI Summaries for NoteNest',
+    example: 'notenest-summaries.json',
     question: 'Should we add AI-generated summaries to our note-taking app?',
     context: [
       { title: 'prd.md', content: `# PRD: AI-Generated Summaries for NoteNest
@@ -413,6 +425,7 @@ Sentiment is mixed on purpose — this is raw, not curated.
   {
     id: 'notenest-api',
     label: 'Public API & Webhooks',
+    example: 'notenest-api.json',
     question: 'Should we build a public API and webhooks for NoteNest?',
     context: [
       { title: 'spec.md', content: `# PRD: Public API & Webhooks for NoteNest
@@ -531,6 +544,7 @@ const confirmModalContinue = document.getElementById('confirm-modal-continue');
 const state = {
   running: false, currentRound: 0, maxRounds: 0, turnsThisRound: 0,
   roundCells: {}, roundMarkers: {}, progressSteps: {}, thinking: null,
+  activeCaseId: null,   // which CASES entry (or 'blank') is loaded into the form
 };
 
 // ---------------------------------------------------------------
@@ -697,6 +711,26 @@ function setActiveChip(id) {
   document.querySelectorAll('#case-picker .case-chip').forEach(chip => {
     chip.classList.toggle('is-active-chip', chip.dataset.caseId === id);
   });
+  state.activeCaseId = id;
+  refreshReplayButtonState();
+}
+
+// "Replay saved example" only makes sense for a case that actually has a
+// saved recording — "start from scratch" is an arbitrary question with no
+// matching fixture, so the button is disabled (not hidden — still clear
+// it exists, just not usable) rather than silently replaying the wrong
+// thing, which was the original bug here.
+function activeCaseExample() {
+  const c = CASES.find(c => c.id === state.activeCaseId);
+  return c ? c.example : null;
+}
+
+function refreshReplayButtonState() {
+  const hasExample = !!activeCaseExample();
+  replayBtn.disabled = state.running || !hasExample;
+  replayBtn.classList.toggle('opacity-40', !hasExample);
+  replayBtn.classList.toggle('cursor-not-allowed', !hasExample);
+  replayBtn.title = hasExample ? '' : 'No saved example for a custom question';
 }
 
 function renderCaseChips() {
@@ -1162,14 +1196,22 @@ function showError(message) {
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+// Replay-only: a real debate has real multi-second (often much longer) gaps
+// at exactly the moments the thinking indicator covers — setup, fact-checking,
+// between rounds, judging. Replay's per-event delays below are fast/uniform
+// by design (it's replaying a fixed log, not waiting on anything), so those
+// gaps would otherwise flash by in under half a second. This restores the
+// pause at those specific points so the pacing reads as "something is
+// genuinely happening" rather than a uniform scroll — the same distinction
+// the trailing indicator itself draws, just simulated instead of real.
+const REPLAY_THINKING_PAUSE_MS = 5000;
+
 function setBusy(loading, replaying = false) {
   startBtn.textContent = (loading && !replaying) ? 'Debating…' : 'Start Debate';
   refreshStartButtonState(); // covers both "busy" and "no question" disable reasons
 
-  replayBtn.disabled = loading;
   replayBtn.textContent = (loading && replaying) ? '▶ Replaying…' : '▶ Replay saved example';
-  replayBtn.classList.toggle('opacity-40', loading);
-  replayBtn.classList.toggle('cursor-not-allowed', loading);
+  refreshReplayButtonState(); // covers both "busy" and "no example for this case" disable reasons
 }
 
 async function startDebate(question, maxRounds, context) {
@@ -1245,6 +1287,8 @@ async function startDebate(question, maxRounds, context) {
 // same renderer as a live debate — no API calls, so layout/style iteration is free.
 async function replayExample() {
   if (state.running) return;
+  const example = activeCaseExample();
+  if (!example) return; // button should already be disabled in this case
 
   resetDebateView();
   debateSection.classList.remove('hidden');
@@ -1255,17 +1299,23 @@ async function replayExample() {
   setBusy(true, true);
 
   try {
-    const res = await fetch('/examples/notenest-summaries.json');
+    const res = await fetch(`/examples/${example}`);
     if (!res.ok) throw new Error(`Failed to load example (${res.status})`);
     const events = await res.json();
 
     const roundNumbers = events.filter(e => e.type === 'round').map(e => e.round);
     state.maxRounds = roundNumbers.length ? Math.max(...roundNumbers) : 1;
     buildProgressBar(state.maxRounds);
+    await sleep(REPLAY_THINKING_PAUSE_MS); // let "Preparing the debate" actually be seen
 
     for (const evt of events) {
       handleEvent(evt);
-      await sleep(evt.type === 'tool_call' ? 250 : 400); // mirrors the live backend's pacing
+      // Both turns just landed (about to fact-check) or flags just landed
+      // (about to prepare the next round / judge) — the same two moments
+      // showThinking() covers live — pause for real instead of flashing by.
+      const enteringThinkingPhase =
+        (evt.type === 'turn' && state.turnsThisRound >= 2) || evt.type === 'flags';
+      await sleep(enteringThinkingPhase ? REPLAY_THINKING_PAUSE_MS : (evt.type === 'tool_call' ? 250 : 400));
     }
   } catch (err) {
     console.error(err);

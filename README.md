@@ -15,7 +15,7 @@ and every part of the decision is grounded in evidence you can inspect.
 
 ### Option 1: live demo
 
-Visit LINK for the live version.
+Check [live version](https://should-we-build-it.onrender.com/).
 
 ### Option 2: run it locally
 
