@@ -679,13 +679,17 @@ document.addEventListener('keydown', (e) => {
 // ---------------------------------------------------------------
 // Setup panel: case picker + context blocks
 // ---------------------------------------------------------------
-function createContextBlockRow(title, content) {
+// Keeps the debate's evidence pool small enough for a debater to actually
+// read through in one turn, and keeps the form from scrolling forever.
+const MAX_CONTEXT_SOURCES = 3;
+
+function createContextBlockRow(title, content, placeholder = 'Label (e.g. Spec, Feedback)') {
   const row = h('div', { class: 'context-block bg-white border border-line rounded-lg p-3 space-y-2' });
 
   const topRow = h('div', { class: 'flex items-center gap-2' });
   const titleInput = h('input', {
     class: 'ctx-title flex-1 bg-transparent font-mono text-[11px] uppercase tracking-wide text-inkSoft placeholder:text-inkSoft/40 border-b border-transparent focus:border-line pb-1',
-    attrs: { type: 'text', placeholder: 'Label (e.g. Spec, Feedback)' },
+    attrs: { type: 'text', placeholder },
   });
   titleInput.value = title || '';
   const removeBtn = h('button', {
@@ -695,12 +699,13 @@ function createContextBlockRow(title, content) {
   });
   removeBtn.addEventListener('click', () => {
     if (contextBlocksEl.children.length > 1) row.remove();
+    refreshAddContextButtonState();
   });
   topRow.append(titleInput, removeBtn);
 
   const textarea = h('textarea', {
     class: 'ctx-content w-full bg-transparent font-body text-[15px] leading-relaxed resize-y min-h-[6rem]',
-    attrs: { rows: '4', placeholder: 'Paste content…' },
+    attrs: { rows: '4', placeholder: 'Paste or write content…' },
   });
   textarea.value = content || '';
 
@@ -718,22 +723,33 @@ function refreshStartButtonState() {
   startBtn.classList.toggle('cursor-not-allowed', disabled);
 }
 
+// "+ add source" is disabled once the cap is hit rather than hidden — still
+// visible so it's clear why nothing happens, consistent with how the replay
+// button handles its own not-applicable state below.
+function refreshAddContextButtonState() {
+  const atCap = contextBlocksEl.children.length >= MAX_CONTEXT_SOURCES;
+  addContextBtn.disabled = atCap;
+  addContextBtn.classList.toggle('opacity-40', atCap);
+  addContextBtn.classList.toggle('cursor-not-allowed', atCap);
+}
+
 function loadCaseIntoForm(caseObj) {
   questionInput.value = caseObj.question;
   contextBlocksEl.innerHTML = '';
   caseObj.context.forEach(c => contextBlocksEl.appendChild(createContextBlockRow(c.title, c.content)));
   setActiveChip(caseObj.id);
   refreshStartButtonState();
+  refreshAddContextButtonState();
 }
 
 function clearForm() {
   questionInput.value = '';
   contextBlocksEl.innerHTML = '';
-  contextBlocksEl.appendChild(createContextBlockRow('Spec', ''));
-  contextBlocksEl.appendChild(createContextBlockRow('Feedback', ''));
+  contextBlocksEl.appendChild(createContextBlockRow('', '', 'Label (e.g. spec, user feedback)'));
   setActiveChip('blank');
   questionInput.focus();
   refreshStartButtonState();
+  refreshAddContextButtonState();
 }
 
 questionInput.addEventListener('input', refreshStartButtonState);
@@ -790,7 +806,9 @@ function renderCaseChips() {
 }
 
 addContextBtn.addEventListener('click', () => {
+  if (contextBlocksEl.children.length >= MAX_CONTEXT_SOURCES) return;
   contextBlocksEl.appendChild(createContextBlockRow('', ''));
+  refreshAddContextButtonState();
 });
 
 // Each round is one full exchange (Advocate argues, Skeptic rebuts, fact-check)
