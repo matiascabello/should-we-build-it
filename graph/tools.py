@@ -150,9 +150,10 @@ TOOL_SCHEMAS = [
         "type": "function",
         "name": "search_internal_context",
         "description": (
-            "Search the product's own PRD and user feedback. Use for "
-            "anything about THIS product, its users, the proposed feature, "
-            "costs, or scope. Returns up to 3 relevant chunks."
+            "Search the context docs supplied for this product (PRD, user "
+            "feedback, specs, or whatever was provided). Use for anything "
+            "about THIS product, its users, the proposed feature, costs, "
+            "or scope. Returns up to 3 relevant chunks."
         ),
         "parameters": {
             "type": "object",
