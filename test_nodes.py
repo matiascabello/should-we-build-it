@@ -7,7 +7,7 @@ from graph.nodes import advocate_node, skeptic_node, factcheck_node, judge_node
 state: DebateState = {
     "question": "Should we add AI-generated summaries to our note-taking app?",
     "max_rounds": 1, "round": 1,
-    "transcript": [], "flagged_claims": [], "verdict": None,
+    "transcript": [], "flagged_claims": [], "verdict": None, "rejection": None,
 }
 
 # One round: advocate, then skeptic

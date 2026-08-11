@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 from graph.state import DebateState
 from graph.nodes import (
-    advocate_node, skeptic_node, factcheck_node, judge_node,
+    scope_check_node, advocate_node, skeptic_node, factcheck_node, judge_node,
 )
 
 
@@ -17,17 +17,32 @@ def _should_continue(state: DebateState) -> str:
     return "judge"
 
 
+def _route_after_scope_check(state: DebateState) -> str:
+    """Conditional edge: an off-topic question skips the debate entirely —
+    no advocate/skeptic/factcheck/judge cost is spent on it."""
+    return "reject" if state.get("rejection") else "proceed"
+
+
 def build_debate_graph():
     g = StateGraph(DebateState)
 
+    g.add_node("scope_check", scope_check_node)
     g.add_node("increment_round", _increment_round)
     g.add_node("advocate", advocate_node)
     g.add_node("skeptic", skeptic_node)
     g.add_node("factcheck", factcheck_node)
     g.add_node("judge", judge_node)
 
+    # Every run is gated first: reject off-topic questions straight to END,
+    # otherwise fall into the normal round loop.
+    g.add_edge(START, "scope_check")
+    g.add_conditional_edges(
+        "scope_check",
+        _route_after_scope_check,
+        {"proceed": "increment_round", "reject": END},
+    )
+
     # A round runs: bump counter -> advocate -> skeptic -> fact-check
-    g.add_edge(START, "increment_round")
     g.add_edge("increment_round", "advocate")
     g.add_edge("advocate", "skeptic")
     g.add_edge("skeptic", "factcheck")

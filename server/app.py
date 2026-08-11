@@ -138,6 +138,12 @@ def _serialize_update(node_name: str, state_update: dict) -> dict:
         event["type"] = "verdict"
         event["verdict"] = v.model_dump()
 
+    # The scope gate refused the question — no debate ran at all. (A passing
+    # scope check also sets "rejection", to None, which the `and` below skips.)
+    elif "rejection" in state_update and state_update["rejection"]:
+        event["type"] = "rejected"
+        event["reason"] = state_update["rejection"]
+
     # increment_round emits just the counter — a lightweight "new round" ping
     elif "round" in state_update:
         event["type"] = "round"
@@ -172,6 +178,7 @@ async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc
         "transcript": [],
         "flagged_claims": [],
         "verdict": None,
+        "rejection": None,
     }
 
     try:
