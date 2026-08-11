@@ -42,6 +42,12 @@ class DecisionMemo(BaseModel):
     open_questions: list[str]
 
 
+class ScopeCheck(BaseModel):
+    """Gate node's verdict on whether the question fits this app at all."""
+    in_scope: bool
+    reason: str   # shown verbatim to the user, so keep it short and self-explanatory either way
+
+
 # --- The shared state that flows through the graph ---
 
 class DebateState(TypedDict):
@@ -51,3 +57,4 @@ class DebateState(TypedDict):
     transcript: Annotated[list[Turn], add]
     flagged_claims: Annotated[list[Flag], add]
     verdict: Optional[DecisionMemo]
+    rejection: Optional[str]   # set by scope_check_node; a debate never runs if this is set

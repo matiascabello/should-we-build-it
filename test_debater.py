@@ -11,6 +11,7 @@ state: DebateState = {
     "transcript": [],
     "flagged_claims": [],
     "verdict": None,
+    "rejection": None,
 }
 
 result = advocate_node(state)

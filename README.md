@@ -174,7 +174,9 @@ nothing would otherwise show for a while.
 
 ```mermaid
 flowchart TD
-    Start(["Start"]) --> Round["increment_round"]
+    Start(["Start"]) --> Gate{"🚧 Scope gate<br/>is this a build/no-build question?"}
+    Gate -- no --> Refuse(["Refused — no debate runs"])
+    Gate -- yes --> Round["increment_round"]
     Round --> Advocate[["🗣️ Advocate<br/>argues FOR"]]
     Advocate --> Skeptic[["🗣️ Skeptic<br/>argues AGAINST"]]
     Skeptic --> Fact["🔎 Fact-Checker<br/>flags unsupported claims"]
@@ -188,6 +190,13 @@ flowchart TD
     Skeptic -. tool call .-> Internal
     Skeptic -. tool call .-> Web
 ```
+
+Every run passes through the scope gate first: a cheap classification step
+that checks whether the question is actually a build/no-build decision
+before any debater, tool call, or judge runs. Off-topic asks — "fix this
+bug," "do my homework," or a "should we build X" wrapper around a direct
+request for X — get refused right there instead of spending a full debate
+on them.
 
 The double-bordered nodes are the two debaters, each running its own
 tool-calling loop underneath (dashed lines) before handing off — the

@@ -12,6 +12,7 @@ initial = {
     "transcript": [],
     "flagged_claims": [],
     "verdict": None,
+    "rejection": None,
 }
 
 final = graph.invoke(initial)

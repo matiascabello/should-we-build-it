@@ -1,4 +1,4 @@
-from graph.state import Turn, ToolCall, Flag, DecisionMemo, DebateState
+from graph.state import Turn, ToolCall, Flag, DecisionMemo, ScopeCheck, DebateState
 
 # Build a turn with a tool call — mimics what a debater node will emit
 turn = Turn(
@@ -27,6 +27,11 @@ memo = DecisionMemo(
 )
 print("Memo OK:", memo.recommendation, "@", memo.confidence)
 
+# The scope gate's verdict — must also validate cleanly, since it's JSON the
+# gate node emits before any debater runs
+check = ScopeCheck(in_scope=False, reason="This is a request to debug code, not a build decision.")
+print("ScopeCheck OK:", check.in_scope, "-", check.reason)
+
 # Construct a state dict by hand — this is what flows through the graph
 state: DebateState = {
     "question": "Should we add AI summaries to our note app?",
@@ -35,5 +40,6 @@ state: DebateState = {
     "transcript": [turn],
     "flagged_claims": [],
     "verdict": None,
+    "rejection": None,
 }
 print("State OK:", state["question"], "| turns:", len(state["transcript"]))
