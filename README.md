@@ -2,14 +2,13 @@
 
 **A multi-agent AI debate arena for product decisions.**
 
-Give it a feature idea — *"Should we add AI-generated summaries to our
-note-taking app?"* — and two AI agents argue it out. One makes the case for
+Give it a feature idea, *"Should we add AI-generated summaries to our
+note-taking app?"*, and two AI agents argue it out. One makes the case for
 building it, the other against. They pull in real evidence as they go, a
 third agent fact-checks their claims, and a final judge weighs everything and
 hands back a structured go/no-go recommendation.
 
-It's a small, deliberately fun experiment — but a real one. It runs end to end,
-and every part of the decision is grounded in evidence you can inspect.
+It's a small, deliberately fun experiment, but a real one. It runs end to end, and every part of the decision is grounded in evidence you can inspect.
 
 ## Quick start
 
@@ -55,13 +54,11 @@ Think of it as a structured debate with four roles:
 
 The debate runs for up to three rounds (configurable when you start one).
 Crucially, the Advocate and Skeptic don't just
-make things up — before each argument, they **go look things up**. They can
+make things up: before each argument, they **go look things up**. They can
 search two kinds of sources:
 
-- **Internal documents** — a mock product spec and a file of real-sounding user
-  feedback (the "closed world" of what this company already knows).
-- **The live web** — for market data, competitors, or anything the internal docs
-  don't cover (the "open world").
+- **Internal documents**: a  product specification, a PRD, feedback from users, etc.
+- **The live web**: for market data, competitors, or anything the internal docs don't cover.
 
 Each agent decides *for itself* what it needs to know and goes and finds it. The
 Advocate might search the web for market size; the Skeptic might dig into the
@@ -71,17 +68,12 @@ makes them agents rather than just chatbots.
 At the end, the Judge produces a **decision memo**: a recommendation (build /
 don't build / build-but-descope), a confidence score, the key tradeoffs, the
 specific evidence that *would change the answer*, and open questions to resolve.
-That last part — "here's what would change my mind" — is the piece I care about
-most, because it's exactly what a good PM writes in a real go/no-go doc.
 
 ## What a result looks like
 
-For the note-app summaries question, the system consistently lands on
-**"build, but descope"** with moderate confidence — not a coin-flip yes/no. It
-recognizes there's real demand from power users, but weighs that against
-accuracy risks, uncertain value for the average user, and ongoing costs, and
-recommends a narrower first version. The fact-checker catches the debaters when
-they overreach — for example, flagging a confident cost figure that the agent
+For the note-app summaries question, which was one of the examples used while building and testing this project, the system consistently lands on
+**"build, but descope"** with moderate confidence. It
+recognizes there's real demand from power users, but weighs that against accuracy risks, uncertain value for the average user, and ongoing costs, and recommends a narrower first version. The fact-checker catches the debaters when they overreach. For example, flagging a confident cost figure that the agent
 asserted without actually retrieving it.
 
 That nuance is the whole point. A tool that just says "yes, build it!" is
@@ -93,11 +85,7 @@ decision.
 
 There's a handful of deliberate choices worth explaining.
 
-**Hybrid grounding: internal docs and live web.** I could have let the agents
-argue purely from their own knowledge (fast, but they'd invent things) or only
-from a fixed set of documents (safe, but limited). I went with a hybrid: a real
-document base for what "the company knows," plus live search for everything
-else. It's the setup that best mirrors how a PM actually researches a decision.
+**Hybrid grounding: internal docs and live web.** I could have let the agents argue purely from their own knowledge (fast, but they'd invent things) or only from a fixed set of documents (safe, but limited). I went with a hybrid: a real document base for what "the company knows," plus live search for everything else. It's the setup that best mirrors how a PM actually researches a decision.
 
 **Agents choose their own tools.** Rather than scripting "always search X then
 Y," each debater decides when and what to search. This was the harder path to
@@ -109,7 +97,7 @@ convincing part of the demo.
 two AIs generating confident-sounding nonsense. The fact-checker exists to catch
 that: it rewards claims backed by retrieved evidence and flags the ones that
 aren't. Interestingly, it learned to distinguish *unsupported facts* from
-*reasonable opinions* — it flags "this will increase revenue" as speculative but
+*reasonable opinions*: it flags "this will increase revenue" as speculative but
 accepts "users said they'd pay for this" when the evidence is there.
 
 **Structured output, not free text.** The Judge doesn't write a paragraph — it
@@ -124,7 +112,7 @@ rather than waiting for a finished wall of text. There's even a status line
 for the moments in between (fact-checking, preparing the next round) where
 nothing would otherwise show for a while.
 
-## What I learned
+## Key takeways
 
 - **Orchestration is mostly about clean handoffs.** The hard part wasn't any
   single agent — it was defining exactly what information passes between them.
@@ -208,7 +196,7 @@ graph edges at all, just each agent reaching for evidence mid-turn.
 
 ## Honest limitations
 
-This is an experiment, not a product. A few things I'd flag:
+This is just a fun experiment, not a product. A few things I'd flag:
 
 - The fact-checker judges claims against what the agent *retrieved that round*,
   so a true fact stated without a matching search can still get flagged. That's
