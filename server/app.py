@@ -1,5 +1,6 @@
 import json
 import asyncio
+import contextlib
 import time
 from collections import defaultdict
 from fastapi import FastAPI, HTTPException, Request
@@ -155,6 +156,54 @@ def _serialize_update(node_name: str, state_update: dict) -> dict:
     return event
 
 
+# A single blocking model call (a debater composing its final argument after
+# its last tool call, or the fact-checker/judge's one-shot structured-output
+# calls) can leave the SSE stream silent for a while — nothing crosses the
+# wire until that call returns, since no tool_call or node-update event
+# fires mid-call. Verified locally (a proxy that force-closes connections
+# idle beyond a few seconds, put in front of the real app) that an
+# idle-timeout intermediary can and does kill a "quiet but alive" connection
+# during exactly that kind of gap: the debate keeps running and completes
+# successfully server-side (LangSmith shows a clean trace, nothing in the
+# app's own logs), but the client sees the connection drop as a network
+# error. A periodic SSE comment line keeps bytes flowing during any gap long
+# enough to be at risk — the frontend's parser already ignores any line that
+# doesn't start with "data:", so this needs no client-side change.
+HEARTBEAT_INTERVAL_SECONDS = 15
+
+
+async def _drain_graph(initial: dict, queue: asyncio.Queue):
+    """Runs the graph to completion, pushing every (mode, chunk) update into
+    the queue as it arrives. Runs as its own task, separate from whatever is
+    reading the queue, so a heartbeat timeout on the read side (see
+    debate_stream) never cancels — or otherwise disturbs — the graph's own
+    execution; it only ever stops waiting on an empty queue."""
+    try:
+        # astream(), not stream(): graph/nodes.py's node functions are plain
+        # sync def's making blocking OpenAI/Serper calls. Under the sync
+        # .stream() API those ran in-line on this event loop's own thread,
+        # starving every other request on the process — including Render's
+        # health check, which is what killed the instance mid-debate the
+        # first time this ran in production. Under .astream(), LangGraph
+        # dispatches each sync node to a thread pool automatically (see
+        # langgraph/_internal/_runnable.py's coerce_to_runnable: a plain
+        # callable's async path is `run_in_executor`), so the event loop
+        # stays free for the whole run.
+        #
+        # "updates" yields {node_name: state_delta} per node finish (turn/flags/
+        # verdict/round, as before); "custom" yields each tool call the moment
+        # the debater makes it — see graph/nodes.py's stream_writer calls.
+        async for mode, chunk in graph.astream(initial, stream_mode=["updates", "custom"]):
+            await queue.put(("item", mode, chunk))
+    except Exception as exc:
+        # Re-raised on the consumer side (debate_stream) so a real graph
+        # failure still propagates the same way it did before this queue
+        # existed, instead of vanishing into an unread task exception.
+        await queue.put(("error", exc, None))
+    else:
+        await queue.put(("done", None, None))
+
+
 async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc]):
     """Run the graph and yield SSE events, one per node completion.
 
@@ -181,22 +230,25 @@ async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc
         "rejection": None,
     }
 
+    # The graph runs in its own task so the heartbeat loop below can wait on
+    # the queue with a timeout without ever touching (or cancelling) it.
+    queue: asyncio.Queue = asyncio.Queue()
+    producer = asyncio.create_task(_drain_graph(initial, queue))
+
     try:
-        # astream(), not stream(): graph/nodes.py's node functions are plain
-        # sync def's making blocking OpenAI/Serper calls. Under the sync
-        # .stream() API those ran in-line on this event loop's own thread,
-        # starving every other request on the process — including Render's
-        # health check, which is what killed the instance mid-debate the
-        # first time this ran in production. Under .astream(), LangGraph
-        # dispatches each sync node to a thread pool automatically (see
-        # langgraph/_internal/_runnable.py's coerce_to_runnable: a plain
-        # callable's async path is `run_in_executor`), so the event loop
-        # stays free for the whole run.
-        #
-        # "updates" yields {node_name: state_delta} per node finish (turn/flags/
-        # verdict/round, as before); "custom" yields each tool call the moment
-        # the debater makes it — see graph/nodes.py's stream_writer calls.
-        async for mode, chunk in graph.astream(initial, stream_mode=["updates", "custom"]):
+        while True:
+            try:
+                kind, a, b = await asyncio.wait_for(queue.get(), timeout=HEARTBEAT_INTERVAL_SECONDS)
+            except asyncio.TimeoutError:
+                yield ": keep-alive\n\n"
+                continue
+
+            if kind == "done":
+                break
+            if kind == "error":
+                raise a
+
+            mode, chunk = a, b
             if mode == "custom":
                 yield f"data: {json.dumps(chunk)}\n\n"
                 await asyncio.sleep(0.25)  # tool calls arrive in a burst; keep it snappy
@@ -208,6 +260,14 @@ async def debate_stream(question: str, max_rounds: int, context: list[ContextDoc
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
     finally:
+        # Guards against an early client disconnect (StreamingResponse
+        # closes this generator via GeneratorExit, which still runs this
+        # finally block) leaving the graph running — and burning API calls —
+        # for a debate nobody's listening to anymore. A no-op if the
+        # producer already finished on its own.
+        producer.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await producer
         clear_active_retriever(token)
         if retriever is not None:
             retriever.vectorstore.delete_collection()
