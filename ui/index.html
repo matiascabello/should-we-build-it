@@ -93,12 +93,28 @@
   textarea, input, select { font-family: inherit; }
   textarea:focus, input:focus, select:focus { outline: none; }
 
+  /* debate-grid is a vertical stack of per-round <details> blocks (plus the
+     trailing thinking indicator), not one big grid — collapsing a round is
+     then just toggling its `open` attribute, no layout bookkeeping needed. */
+  #debate-grid { display: flex; flex-direction: column; gap: 1.25rem; }
+
   /* minmax(0, 1fr), not bare 1fr (== minmax(auto, 1fr)): a grid track's "auto"
      minimum is its content's min-content size, so long unbroken text (a
      source title, a URL-shaped string) can force the track — and the whole
-     grid — wider than the page, causing horizontal scroll ("grid blowout"). */
-  #debate-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem 1.25rem; align-items: start; }
+     grid — wider than the page, causing horizontal scroll ("grid blowout").
+     This is the *inner* per-round grid (advocate card / marker / skeptic card). */
+  .round-body { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem 1.25rem; align-items: start; }
   .col-span-full { grid-column: 1 / -1; }
+
+  /* Round accordion header — always present (so a round can be collapsed or
+     re-expanded manually, not just by the auto-collapse-on-advance logic),
+     but deliberately unobtrusive: it's redundant with the "Round N" already
+     printed on each card while a round is open, and only earns its keep once
+     collapsed, when it's the only summary of that round left on screen. */
+  .round-summary { list-style: none; cursor: pointer; user-select: none; }
+  .round-summary::-webkit-details-marker { display: none; }
+  .round-summary .round-chevron { display: inline-block; transition: transform .15s ease; }
+  details[open] > .round-summary .round-chevron { transform: rotate(90deg); }
 
   /* Case-chip "active" state as one hand-authored compound-selector rule,
      not three separate Tailwind utility classes (bg-ink/text-paper/border-ink)
@@ -110,7 +126,7 @@
   .case-chip.is-active-chip { background-color: #0f172a; color: #f8fafc; border-color: #0f172a; }
 
   @media (max-width: 768px) {
-    #debate-grid { grid-template-columns: 1fr; }
+    .round-body { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -233,12 +249,6 @@
       <div id="verdict-stamp"
         class="shrink-0 font-display text-2xl font-semibold rounded-lg px-5 py-3 text-center leading-tight text-white"></div>
       <div class="flex-1 pt-1">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="flex-1 h-2.5 bg-paperDark rounded-full overflow-hidden border border-line">
-            <div id="confidence-bar" class="h-full bg-gold transition-all duration-700 ease-out" style="width:0%"></div>
-          </div>
-          <span id="confidence-label" class="font-mono text-xs text-inkSoft shrink-0"></span>
-        </div>
         <p id="rationale" class="font-body text-[17px] leading-relaxed text-ink"></p>
       </div>
     </div>
@@ -548,8 +558,6 @@ const newActivityToast = document.getElementById('new-activity-toast');
 
 const verdictSection   = document.getElementById('verdict');
 const verdictStampEl   = document.getElementById('verdict-stamp');
-const confidenceBar    = document.getElementById('confidence-bar');
-const confidenceLabel  = document.getElementById('confidence-label');
 const rationaleEl       = document.getElementById('rationale');
 const tradeoffsList     = document.getElementById('tradeoffs-list');
 const mindList          = document.getElementById('mind-list');
@@ -575,7 +583,7 @@ const confirmModalContinue = document.getElementById('confirm-modal-continue');
 
 const state = {
   running: false, currentRound: 0, maxRounds: 0, turnsThisRound: 0,
-  roundCells: {}, roundMarkers: {}, progressSteps: {}, thinking: null,
+  roundCells: {}, roundMarkers: {}, roundSections: {}, progressSteps: {}, thinking: null,
   activeCaseId: null,   // which CASES entry (or 'blank') is loaded into the form
   question: '',
   // A clean copy of the debate, accumulated from the same events that drive
@@ -849,6 +857,7 @@ function resetDebateView() {
   debateGrid.innerHTML = ''; // wipes any previous run's thinking-indicator too
   state.roundCells = {};
   state.roundMarkers = {};
+  state.roundSections = {};
   state.progressSteps = {};
   state.currentRound = 0;
   state.turnsThisRound = 0;
@@ -948,8 +957,10 @@ function buildProgressBar(maxRounds) {
 
   for (let n = 1; n <= maxRounds; n++) {
     const step = buildProgressStep(`Round ${n}`, () => {
-      const marker = state.roundMarkers[n];
-      if (marker) marker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const section = state.roundSections[n];
+      if (!section) return;
+      section.details.open = true; // re-expand if the round had auto-collapsed
+      section.details.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     state.progressSteps[`round-${n}`] = step;
     row.appendChild(step.btn);
@@ -1020,14 +1031,39 @@ function buildRoundMarker(n) {
   return h('div', { class: 'self-stretch flex flex-col items-center gap-2 pt-1' }, [pill, rail]);
 }
 
+// The accordion header for a round — always visible (open or collapsed) so
+// a round can be closed or re-opened by hand at any time. Folding is 100%
+// manual — click the summary row, same as any native <details> — because
+// auto-collapsing on round-advance meant occasionally yanking a round shut
+// while someone was still reading it, which is exactly the kind of
+// unrequested content movement the new-activity toast (see noteNewActivity)
+// deliberately avoids. Just the round label: a per-round fact-check gist
+// was tried here and dropped — "2 unsupported claims" isn't actionable
+// without the claims themselves, and "no issues flagged" isn't worth a line.
+function buildRoundSummary(n) {
+  const chevron = h('span', { class: 'round-chevron', text: '▸' });
+  const label = h('span', { text: `Round ${n}` });
+  return h('summary', {
+    class: 'round-summary flex items-center gap-2 font-mono text-xs uppercase tracking-[0.15em] text-inkSoft hover:text-ink transition-colors py-1',
+  }, [chevron, label]);
+}
+
 function addRoundRow(n) {
   const advocate = buildInProgressCard('advocate', n);
   const skeptic  = buildInProgressCard('skeptic', n);
   const marker = buildRoundMarker(n);
 
-  debateGrid.append(advocate.cell, marker, skeptic.cell);
+  const body = h('div', { class: 'round-body' });
+  body.append(advocate.cell, marker, skeptic.cell);
+
+  const summary = buildRoundSummary(n);
+  const details = h('details', { class: 'round-section card-in', attrs: { open: '' } });
+  details.append(summary, body);
+
+  debateGrid.appendChild(details);
   state.roundCells[n] = { advocate, skeptic };
   state.roundMarkers[n] = marker;
+  state.roundSections[n] = { details };
   noteNewActivity();
 }
 
@@ -1120,7 +1156,7 @@ function addFlags(flags) {
   const unsupported = flags.filter(f => !f.supported);
   const supported = flags.filter(f => f.supported);
 
-  const strip = h('div', { class: 'flags-strip card-in min-w-0 bg-paperDark border border-line rounded-xl p-4 col-span-full' });
+  const strip = h('div', { class: 'flags-strip card-in min-w-0 bg-paperDark border border-line rounded-xl p-4 mt-4' });
   strip.appendChild(h('div', { class: 'font-mono text-xs uppercase tracking-[0.15em] text-inkSoft mb-2', text: `Fact-check — Round ${round}` }));
 
   if (!unsupported.length && !supported.length) {
@@ -1131,7 +1167,11 @@ function addFlags(flags) {
     unsupported.forEach(f => strip.appendChild(buildFlagRow(f)));
     supported.forEach(f => strip.appendChild(buildFlagRow(f)));
   }
-  debateGrid.appendChild(strip);
+  // Lands inside this round's <details> (after round-body), not on debateGrid
+  // directly — so it collapses/expands with the rest of the round.
+  const section = state.roundSections[round];
+  if (section) section.details.appendChild(strip);
+  else debateGrid.appendChild(strip); // shouldn't happen, but don't drop it
   noteNewActivity();
 }
 
@@ -1198,10 +1238,10 @@ function showVerdict(v) {
   verdictStampEl.textContent = REC_LABEL[v.recommendation] || v.recommendation;
   verdictStampEl.className = `shrink-0 font-display text-2xl font-semibold rounded-lg px-5 py-3 text-center leading-tight text-white ${REC_STYLE[v.recommendation] || 'bg-ink'}`;
 
-  const pct = Math.round((v.confidence || 0) * 100);
-  confidenceBar.style.width = `${pct}%`;
-  confidenceBar.className = `h-full transition-all duration-700 ease-out ${REC_STYLE[v.recommendation] || 'bg-gold'}`;
-  confidenceLabel.textContent = `${pct}% confidence`;
+  // v.confidence (a single-shot, uncalibrated LLM self-report) is deliberately
+  // not rendered — displaying it as a precise percentage next to this same
+  // rationale in prose claimed a rigor the number doesn't have. The rationale
+  // already carries the real signal.
   rationaleEl.textContent = v.confidence_rationale || '';
 
   fillList(tradeoffsList, v.key_tradeoffs);
@@ -1259,7 +1299,8 @@ function buildMarkdown(mode) {
   if (v) {
     lines.push('## Verdict');
     lines.push('');
-    lines.push(`**${REC_LABEL[v.recommendation] || v.recommendation}** — ${Math.round((v.confidence || 0) * 100)}% confidence`);
+    // No confidence percentage here either — see showVerdict() for why.
+    lines.push(`**${REC_LABEL[v.recommendation] || v.recommendation}**`);
     lines.push('');
     if (v.confidence_rationale) { lines.push(v.confidence_rationale); lines.push(''); }
 
